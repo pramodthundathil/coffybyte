@@ -219,6 +219,7 @@ class FoodCategoryListCreateView(StoreContextMixin, generics.ListCreateAPIView):
     search_fields = ['name']
     ordering_fields = ['name', 'date_added']
     ordering = ['-date_added']
+     
 
     def get_permissions(self):
         if self.request.method == 'POST':

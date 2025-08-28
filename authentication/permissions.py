@@ -33,6 +33,8 @@ class IsStoreOwner(permissions.BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return False
+        if request.user.store_memberships.first().role == "store_owner":
+            return True
         
         store_code = getattr(request, 'store_code', None) or request.data.get('store_code')
         if not store_code:
