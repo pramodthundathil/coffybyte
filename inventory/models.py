@@ -13,7 +13,7 @@ class Tax(models.Model):
         return '{}  {} %'.format(str(self.tax_name), (self.tax_percentage))
 
     class Meta:
-        unique_together = ['store', 'tax_name']
+        unique_together = ['store', 'tax_name','tax_percentage']
 
 
 class Modifiers(models.Model):
