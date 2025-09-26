@@ -174,6 +174,10 @@ class MenuCreateUpdateSerializer(serializers.ModelSerializer):
         required=False,
         allow_empty=True
     )
+    category = serializers.PrimaryKeyRelatedField(
+        queryset=FoodCategory.objects.none(),
+        required=True
+    )
     
     class Meta:
         model = Menu
@@ -188,10 +192,28 @@ class MenuCreateUpdateSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request and hasattr(request, 'user_store'):
             store = request.user_store
+            # Debug: Print store and available modifiers
+            print(f"Current store: {store}")
+            print(f"Available modifiers: {list(Modifiers.objects.filter(store=store, status=True).values('id', 'name'))}")
+            
             # Filter querysets based on current user's store
             self.fields['taxes'].queryset = Tax.objects.filter(store=store, is_active=True)
             self.fields['modifiers'].queryset = Modifiers.objects.filter(store=store, status=True)
             self.fields['category'].queryset = FoodCategory.objects.filter(store=store, active=True)
+        else:
+            print("No store found in request context")
+
+    def validate_modifiers(self, value):
+        """Custom validation for modifiers"""
+        request = self.context.get('request')
+        if request and hasattr(request, 'user_store'):
+            store = request.user_store
+            for modifier in value:
+                if modifier.store != store:
+                    raise serializers.ValidationError(f"Modifier '{modifier.name}' does not belong to your store.")
+                if not modifier.status:
+                    raise serializers.ValidationError(f"Modifier '{modifier.name}' is inactive.")
+        return value
 
     def validate(self, attrs):
         request = self.context.get('request')
@@ -222,14 +244,6 @@ class MenuCreateUpdateSerializer(serializers.ModelSerializer):
                 if tax.store != store:
                     raise serializers.ValidationError({
                         'taxes': "All taxes must belong to your store."
-                    })
-            
-            # Validate that modifiers belong to the same store
-            modifiers = attrs.get('modifiers', [])
-            for modifier in modifiers:
-                if modifier.store != store:
-                    raise serializers.ValidationError({
-                        'modifiers': "All modifiers must belong to your store."
                     })
         
         return attrs

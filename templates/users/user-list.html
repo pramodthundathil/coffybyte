@@ -1,0 +1,134 @@
+{% extends 'index.html' %}
+{% block content %}
+
+<div class="content-page">
+    <div class="container-fluid">
+       <div class="row">
+          <div class="col-sm-12">
+             <div class="card">
+                <div class="card-header d-flex justify-content-between">
+                   <div class="header-title">
+                      <h4 class="card-title">User List</h4>
+                      {% for message in messages %}
+                            <div class="alert {{message.tags}} " role="alert">
+                                <div class="iq-alert-text"><b>Alert</b> {{message}}</div>
+                             </div>
+                             {% endfor %}
+                   </div>
+                </div>
+                <div class="card-body">
+                   <div class="table-responsive">
+                      <div class="row justify-content-between">
+                         <div class="col-sm-6 col-md-6">
+                            <div id="user_list_datatable_info" class="dataTables_filter">
+                               <form class="mr-3 position-relative">
+                                  <div class="form-group mb-0">
+                                     <input type="search" class="form-control" id="exampleInputSearch" placeholder="Search"
+                                        aria-controls="user-list-table">
+                                  </div>
+                               </form>
+                            </div>
+                         </div>
+                         <div class="col-sm-6 col-md-6">
+                            <div class="user-list-files d-flex">
+                               <a class="bg-primary" href="javascript:void();">
+                                  Print
+                               </a>
+                               <a class="bg-primary" href="javascript:void();">
+                                  Excel
+                               </a>
+                               <a class="bg-primary" href="javascript:void();">
+                                  Pdf
+                               </a>
+                            </div>
+                         </div>
+                      </div>
+                      <table id="user-list-table" class="table table-striped dataTable mt-4" role="grid"
+                         aria-describedby="user-list-page-info">
+                         <thead>
+                            <tr class="ligth">
+                               <!-- <th>Profile</th> -->
+                               <th>Name</th>
+                               <th>Last Name</th>
+                               <th>Email</th>
+                               <th>Join Date</th>
+                               <th>Last Login</th>
+                               <th>Status</th>
+                               <th>User Role</th>
+                               <th style="min-width: 100px">Action</th>
+                            </tr>
+                         </thead>
+                         <tbody>
+                            {% for items in contacts %}
+                            <tr>
+                               <!-- <td class="text-center"><img class="rounded img-fluid avatar-40"
+                                     src="../assets/images/user/01.jpg" alt="profile"></td> -->
+                               <td>{{items.first_name}}</td>
+                               <td>{{items.last_name}}</td>
+                               <td>{{items.email}}</td>
+                               <td>{{items.date_joined}}</td>
+                               <td>{{items.last_login}}</td>
+
+                               <td><span class="badge bg-primary">Active</span></td>
+                               <td>{{items.store_memberships.all.0.role}}</td>
+                               <td>
+                                  <div class="flex align-items-center list-user-action">
+               
+                                     <button class="btn btn-sm bg-danger" data-original-title="Delete" data-toggle="modal" data-target="#deletemodel{{items.id}}"><i class="ri-delete-bin-line mr-0" ></i></button>
+                                  </div>
+                               </td>
+                            </tr>
+
+                             <!-- Delete Modal -->
+                     <div class="modal fade" id="deletemodel{{items.id}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                           <div class="modal-content">
+                            
+                              <div class="modal-body">
+                                 Are You Sure Do you Want to delete ?
+                              </div>
+                              <div class="modal-footer">
+                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                                 <a href="{%url 'DeleteUser' items.id %}"  class="btn btn-danger">Yes</a>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                            {% endfor %}
+                           
+                         </tbody>
+                      </table>
+                   </div>
+                   <div class="row justify-content-between mt-3">
+                      <div id="user-list-page-info" class="col-md-6">
+                         <!-- <span>Showing 1 to 5 of 5 entries</span> -->
+                      </div>
+                      <div class="col-md-6">
+                         <nav aria-label="Page navigation example">
+                            <ul class="pagination justify-content-end mb-0">
+                                {%if contacts.has_previous %} {# whether the previous page exists #}
+                                <li class="page-item prev">
+                                  <a class="page-link" href="?page={{contacts.previous_page_number}}"><i
+                                      class="mdi mdi mdi-chevron-left"></i>Prev</a>
+                                  {% endif %}
+                                </li>
+                                {% for page_num in contacts.paginator.page_range %}
+                                <li class="page-item {% if page_num == contacts.number %}active{% endif %}">
+                                    <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+                                </li>
+                                {% endfor %}
+                                {%if contacts.has_next %} {# whether the next page exists #}
+                                <li class="page-item last">
+                                  <a class="page-link" href="?page={{contacts.next_page_number}}"><i class="mdi mdi mdi-chevron-right"></i>Next</a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                         </nav>
+                      </div>
+                   </div>
+                </div>
+             </div>
+          </div>
+       </div>
+    </div>
+{% endblock %}

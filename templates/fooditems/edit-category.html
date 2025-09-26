@@ -1,0 +1,72 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block content %}
+
+<div class="content-page">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+                    <div>
+                        <h4 class="mb-3">Edit Category</h4>
+                        {% for message in messages %}
+                            <div class="alert {{ message.tags }}" role="alert">
+                                <div class="iq-alert-text"><b>Alert:</b> {{ message }}</div>
+                            </div>
+                        {% endfor %}
+                        <p class="mb-0"></p>
+                    </div>
+                    <a href="{% url 'Add_Category' %}" class="btn btn-primary add-list">
+                        <i class="las la-plus mr-3"></i>Add Category
+                    </a>
+                </div>
+            </div>
+            <div class="col-xl-3 col-lg-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between">
+                        <div class="header-title">
+                            <h4 class="card-title">Edit Category Item</h4>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <div class="crm-profile-img-edit position-relative">
+                                    {% if cat.image %}
+                                    <img class="rounded" src="{{ cat.image.url }}" alt="image" style="width:80%;height: auto;">
+                                    {% endif %}
+                                    <div class="crm-p-image bg-primary">
+                                        <i class="las la-pen upload-button"></i>
+                                        <input class="file-upload" name="image" type="file" accept="image/*">
+                                    </div>
+                                </div>
+                            </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-9 col-lg-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between">
+                        <div class="header-title">
+                            <h4 class="card-title">Category Information</h4>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="new-user-info">
+                            <div class="row">
+                                <div class="form-group col-md-12">
+                                    <label for="fname">Category Name:</label>
+                                    <input type="text" class="form-control" name="name" value="{{ cat.name }}" placeholder="Category Name">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Update</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

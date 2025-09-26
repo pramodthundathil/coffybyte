@@ -1,0 +1,115 @@
+{% extends 'index.html' %}
+{% block content %}
+
+<style>
+    .category-add-list {
+        width: 80% !important;
+        margin: auto;
+    }
+    @media (max-width:700px) {
+        .category-add-list {
+            width: 100% !important;
+        }
+    }
+</style>
+
+<div class="category-add-list">
+    <div class="content-page">
+        <div class="container-fluid add-form-list">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between">
+                            <div class="header-title">
+                                <h4 class="card-title">Add Menu Item</h4>
+                                {% for message in messages %}
+                                    <div class="alert {{ message.tags }}" role="alert">
+                                        <div class="iq-alert-text"><b>Alert</b> {{ message }}</div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" enctype="multipart/form-data" data-toggle="validator">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            {{ form.name.label_tag }}
+                                            {{ form.name }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            {{ form.category.label_tag }}
+                                            {{ form.category }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            {{ form.code.label_tag }}
+                                            {{ form.code }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            {{ form.image.label_tag }}
+                                            {{ form.image }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            {{ form.portion.label_tag }}
+                                            {{ form.portion }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            {{ form.diet.label_tag }}
+                                            {{ form.diet }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            {{ form.price.label_tag }}
+                                            {{ form.price }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            {{ form.stock.label_tag }}
+                                            {{ form.stock }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            {{ form.tax.label_tag }}
+                                            {{ form.tax }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            {{ form.tax_value.label_tag }}
+                                            {{ form.tax_value }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            {{ form.description.label_tag }}
+                                            {{ form.description }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary mr-2">Add Menu Item</button>
+                                <button type="reset" class="btn btn-danger">Reset</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Page end  -->
+        </div>
+    </div>
+</div>
+
+{% endblock %}

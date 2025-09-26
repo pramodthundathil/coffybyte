@@ -1,0 +1,68 @@
+{% extends 'index.html' %}
+{% block content %}
+
+<style>
+    .category-add-list {
+        width: 80% !important;
+        margin: auto;
+
+    }
+
+    @media (max-width:700px) {
+
+        .category-add-list {
+            width: 100% !important;
+
+        }
+    }
+</style>
+
+<div class="category-add-list">
+
+    <div class="content-page">
+        <div class="container-fluid add-form-list">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between">
+                            <div class="header-title">
+                                <h4 class="card-title">Add category</h4>
+                                {% for message in messages %}
+                            <div class="alert {{message.tags}} " role="alert">
+                                <div class="iq-alert-text"><b>Alert</b> {{message}}</div>
+                             </div>
+                             {% endfor %}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" data-toggle="validator" enctype="multipart/form-data">
+                                {% csrf_token %}
+                                <div class="row">
+                                   
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>Category Name *</label>
+                                            <input type="text" class="form-control" placeholder="Enter Product Name" name="cname" required>
+                                            <div class="help-block with-errors"></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>Image</label>
+                                            <input type="file" class="form-control image-file" name="pic"
+                                                accept="image/*" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary mr-2">Add category</button>
+                                <button type="reset" class="btn btn-danger">Reset</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Page end  -->
+        </div>
+    </div>
+</div>
+{% endblock %}

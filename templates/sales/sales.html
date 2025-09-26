@@ -1,0 +1,302 @@
+{% extends 'index.html' %}
+{% block content %}
+
+{% load static %}
+
+<div class="content-page">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+                    <div>
+                        <h4 class="mb-3">Sales List</h4>
+                        {% for message in messages %}
+                        <div class="alert alert-{{message.tags}}" role="alert">
+                            <div class="iq-alert-text"><b>Alert</b> {{message}}</div>
+                        </div>
+                        {% endfor %}
+                        
+                        <!-- Summary Cards -->
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body">
+                                        <h5>Total Orders</h5>
+                                        <h3>{{ total_sales.total_orders|default:0 }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body">
+                                        <h5>Total Revenue</h5>
+                                        <h3>${{ total_sales.total_amount|floatformat:2|default:"0.00" }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body">
+                                        <h5>Total Tax</h5>
+                                        <h3>${{ total_sales.total_tax|floatformat:2|default:"0.00" }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white">
+                                    <div class="card-body">
+                                        <h5>Avg Order</h5>
+                                        <h3>${{ total_sales.total_amount}}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <a href="{% url 'sales_analytics' %}" class="btn btn-primary">Analytics</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="col-lg-12 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <form method="GET" class="row g-3">
+                            <div class="col-md-2">
+                                <input type="text" class="form-control" name="search" 
+                                       placeholder="Search by token/order ID" value="{{ search_query }}">
+                            </div>
+                            <div class="col-md-2">
+                                <select class="form-select" name="status">
+                                    <option value="">All Status</option>
+                                    {% for value, label in status_choices %}
+                                    <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <select class="form-select" name="payment_status">
+                                    <option value="">Payment Status</option>
+                                    {% for value, label in payment_status_choices %}
+                                    <option value="{{ value }}" {% if payment_status_filter == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <select class="form-select" name="order_method">
+                                    <option value="">Order Method</option>
+                                    {% for value, label in order_method_choices %}
+                                    <option value="{{ value }}" {% if order_method_filter == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="date" class="form-control" name="date_from" 
+                                       placeholder="From Date" value="{{ date_from }}">
+                            </div>
+                            <div class="col-md-2">
+                                <input type="date" class="form-control" name="date_to" 
+                                       placeholder="To Date" value="{{ date_to }}">
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">Filter</button>
+                                <a href="{% url 'list_sale' %}" class="btn btn-secondary">Clear</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sales Table -->
+            <div class="col-lg-12">
+                <div class="table-responsive rounded mb-3">
+                    <table class="table table-striped mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Token</th>
+                                <th>Order ID</th>
+                                <th>Table/Method</th>
+                                <th>Date & Time</th>
+                                <th>Items</th>
+                                <th>Total Amount</th>
+                                <th>Status</th>
+                                <th>Payment Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-primary">#{{ order.token }}</span>
+                                </td>
+                                <td>{{ order.id }}</td>
+                                <td>
+                                    {% if order.table %}
+                                        {{ order.table }}
+                                    {% else %}
+                                        {{ order.order_method }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div>{{ order.create_date|date:"M d, Y" }}</div>
+                                    <small class="text-muted">{{ order.create_date|time:"g:i A" }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ order.items.count }} items</span>
+                                </td>
+                                <td>
+                                    <strong>${{ order.total_price|floatformat:2 }}</strong>
+                                    {% if order.total_tax %}
+                                    <br><small class="text-muted">Tax: ${{ order.total_tax|floatformat:2 }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <select class="form-select form-select-sm status-update" 
+                                            data-order-id="{{ order.id }}">
+                                        {% for value, label in status_choices %}
+                                        <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
+                                <td>
+                                    {% if order.payment_status == 'Paid' %}
+                                        <span class="badge bg-success">Paid</span>
+                                    {% elif order.payment_status == 'Partial' %}
+                                        <span class="badge bg-warning">Partial</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Pending</span>
+                                    {% endif %}
+                                    {% if order.payment_method != 'Pending' %}
+                                        <br><small class="text-muted">{{ order.payment_method }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'sale_detail' order.id %}" 
+                                           class="btn btn-sm btn-outline-primary" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-outline-secondary" 
+                                                onclick="printReceipt({{ order.id }})" title="Print Receipt">
+                                            <i class="fas fa-print"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="9" class="text-center py-4">
+                                    <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">No sales found matching your criteria.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if orders.has_other_pages %}
+                <nav aria-label="Sales pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if orders.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">&laquo; First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ orders.previous_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">&lsaquo; Previous</a>
+                            </li>
+                        {% endif %}
+
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Page {{ orders.number }} of {{ orders.paginator.num_pages }}
+                            </span>
+                        </li>
+
+                        {% if orders.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ orders.next_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">Next &rsaquo;</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ orders.paginator.num_pages }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">Last &raquo;</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for AJAX status updates -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Status update functionality
+    document.querySelectorAll('.status-update').forEach(select => {
+        select.addEventListener('change', function() {
+            const orderId = this.dataset.orderId;
+            const newStatus = this.value;
+            
+            fetch(`/sales/update-status/${orderId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: `status=${newStatus}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message
+                    showToast('Status updated successfully', 'success');
+                } else {
+                    // Revert the selection and show error
+                    this.selectedIndex = 0;
+                    showToast('Failed to update status', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                this.selectedIndex = 0;
+                showToast('Network error occurred', 'error');
+            });
+        });
+    });
+});
+
+function showToast(message, type) {
+    // Simple toast notification (you can replace with your preferred toast library)
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed top-0 end-0 m-3`;
+    toast.style.zIndex = '9999';
+    toast.innerHTML = message;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+function printReceipt(orderId) {
+    // Open receipt in new window for printing
+    window.open(`/sales/receipt/${orderId}/`, '_blank');
+}
+</script>
+
+<!-- Add Font Awesome if not already included -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+{% endblock %}

@@ -1,0 +1,161 @@
+{% extends 'index.html' %}
+{% load static %}
+{% block content %}
+
+
+<style>
+    .category-add-list {
+        width: 80% !important;
+        margin: auto;
+    }
+
+    @media (max-width:700px) {
+        .category-add-list {
+            width: 100% !important;
+        }
+    }
+
+    .contenttable table {
+        border: .5px solid gray;
+        border-radius: 20px;
+        padding: 20px;
+        width: 100%;
+        /* min-height: 500px; */
+    }
+
+    .contenttable td {
+        height: 50px;
+    }
+
+    .contenttable tr:nth-child(even) {
+        background-color: rgba(173, 216, 230, 0.305);
+    }
+
+    .contenttable th,
+    td {
+        padding: 10px;
+        /* border-radius: 20px; */
+        border-right: .5px solid gray;
+    }
+
+    .contenttable th {
+        height: 60px !important;
+    }
+</style>
+
+<div class="main-panel">
+    <div class="content-wrapper pb-0">
+
+        <div class="category-add-list">
+            <div class="content-page">
+                <div class="container-fluid add-form-list">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between">
+                                    <div class="header-title">
+                                        <h4 class="card-title">Income and Expense</h4>
+                                        <p>Income and Expense sheet of <span class="text-primary h5">{{month}}</span>
+                                        </p>
+                                    </div>
+                                    <div class="header-title">
+                                        <button class="btn btn-primary" class="btn btn-primary" data-toggle="modal"
+                                            data-target="#exampleModal">Search By date</button>
+                                    </div>
+                                    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog"
+                                        aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                                                    <button type="button" class="close" data-dismiss="modal"
+                                                        aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <form action="{%url 'balance_sheet_selected' %}" method="post">
+                                                        {% csrf_token %}
+                                                        <label for="">Start Date</label>
+                                                        <input type="date" class="form-control" name="sdate" required>
+                                                        <label for="">End Date</label>
+                                                        <input type="date" class="form-control" name="edate" required>
+                                                </div>
+
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary"
+                                                        data-dismiss="modal">Close</button>
+                                                    <button type="submit" class="btn btn-primary">Search</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+                            <div class="contenttable">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th style="border-bottom: .5px solid gray;">Sl No</th>
+                                            <th style="border-bottom: .5px solid gray;">Date</th>
+                                            <th style="width: 70%;border-bottom: .5px solid gray;">Particulars</th>
+                                            <th style="border-bottom: .5px solid gray;">Debit</th>
+                                            <th style="border-bottom: .5px solid gray;">Credit</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for record in combined_list %}
+                                        <tr>
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>{{record.date}}</td>
+                                            <td>{{ record.perticulers }}</td>
+                                            <td>
+                                                {% if record.type == 'debit' %}
+                                                {{ record.amount|floatformat:2 }}
+                                                {% else %}
+                                                --
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if record.type == 'credit' %}
+                                                {{ record.amount|floatformat:2 }}
+                                                {% else %}
+                                                --
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                        <tr>
+                                            <th></th>
+                                            <th colspan="2" style="width: 70%;border-top: .5px solid gray;">Totals</th>
+                                            <th style="border-top: .5px solid gray;">{{ total_expense |floatformat:2 }}
+                                            </th>
+                                            <th style="border-top: .5px solid gray;">{{ total_income |floatformat:2 }}
+                                            </th>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const startDateInput = document.querySelector('input[name="sdate"]');
+        const endDateInput = document.querySelector('input[name="edate"]');
+
+        startDateInput.addEventListener('change', function () {
+            // Set the minimum value of the end date to the start date
+            endDateInput.min = startDateInput.value;
+        });
+    });
+</script>
+
+{% endblock %}
