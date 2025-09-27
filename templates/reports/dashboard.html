@@ -1,0 +1,407 @@
+{% extends 'index.html' %}
+{% block content %}
+
+{% load static %}
+
+<div class="content-page">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="page-title-box d-sm-flex align-items-center justify-content-between">
+                    <h4 class="mb-sm-0 font-size-18">Store Reports</h4>
+                    <div class="page-title-right">
+                        <ol class="breadcrumb m-0">
+                            <li class="breadcrumb-item"><a href="javascript: void(0);">Dashboard</a></li>
+                            <li class="breadcrumb-item active">Reports</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Day Book Report -->
+            <div class="col-xl-6 col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">Day Book Report</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="dayBookForm" method="post" action="{% url 'generate_daybook' %}">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="start_date" class="form-label">Start Date</label>
+                                        <input type="date" class="form-control" id="start_date" name="start_date" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="end_date" class="form-label">End Date</label>
+                                        <input type="date" class="form-control" id="end_date" name="end_date" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label class="form-label">Report Format</label>
+                                        <div class="d-flex gap-3">
+                                            <button type="submit" name="format" value="excel" class="btn btn-success">
+                                                <i class="fas fa-file-excel"></i> Download Excel
+                                            </button>
+                                            <button type="submit" name="format" value="pdf" class="btn btn-danger">
+                                                <i class="fas fa-file-pdf"></i> Download PDF
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sales Summary Report -->
+            <div class="col-xl-6 col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">Sales Summary Report</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="salesSummaryForm" method="post" action="{% url 'generate_sales_summary' %}">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="sales_start_date" class="form-label">Start Date</label>
+                                        <input type="date" class="form-control" id="sales_start_date" name="start_date" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="sales_end_date" class="form-label">End Date</label>
+                                        <input type="date" class="form-control" id="sales_end_date" name="end_date" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label class="form-label">Report Format</label>
+                                        <div class="d-flex gap-3">
+                                            <button type="submit" name="format" value="excel" class="btn btn-success">
+                                                <i class="fas fa-file-excel"></i> Download Excel
+                                            </button>
+                                            <button type="submit" name="format" value="pdf" class="btn btn-danger">
+                                                <i class="fas fa-file-pdf"></i> Download PDF
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Payment Methods Report -->
+            <div class="col-xl-6 col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">Payment Methods Report</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="paymentMethodsForm" method="post" action="{% url 'generate_payment_methods' %}">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="payment_start_date" class="form-label">Start Date</label>
+                                        <input type="date" class="form-control" id="payment_start_date" name="start_date" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="payment_end_date" class="form-label">End Date</label>
+                                        <input type="date" class="form-control" id="payment_end_date" name="end_date" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label class="form-label">Report Format</label>
+                                        <div class="d-flex gap-3">
+                                            <button type="submit" name="format" value="excel" class="btn btn-success">
+                                                <i class="fas fa-file-excel"></i> Download Excel
+                                            </button>
+                                            <button type="submit" name="format" value="pdf" class="btn btn-danger">
+                                                <i class="fas fa-file-pdf"></i> Download PDF
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Menu Items Performance Report -->
+            <div class="col-xl-6 col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">Menu Items Performance</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="menuPerformanceForm" method="post" action="{% url 'generate_menu_performance' %}">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="menu_start_date" class="form-label">Start Date</label>
+                                        <input type="date" class="form-control" id="menu_start_date" name="start_date" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="menu_end_date" class="form-label">End Date</label>
+                                        <input type="date" class="form-control" id="menu_end_date" name="end_date" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label class="form-label">Report Format</label>
+                                        <div class="d-flex gap-3">
+                                            <button type="submit" name="format" value="excel" class="btn btn-success">
+                                                <i class="fas fa-file-excel"></i> Download Excel
+                                            </button>
+                                            <button type="submit" name="format" value="pdf" class="btn btn-danger">
+                                                <i class="fas fa-file-pdf"></i> Download PDF
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Tax Report -->
+            <div class="col-xl-6 col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">Tax Report</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="taxReportForm" method="post" action="{% url 'generate_tax_report' %}">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="tax_start_date" class="form-label">Start Date</label>
+                                        <input type="date" class="form-control" id="tax_start_date" name="start_date" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="tax_end_date" class="form-label">End Date</label>
+                                        <input type="date" class="form-control" id="tax_end_date" name="end_date" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label class="form-label">Report Format</label>
+                                        <div class="d-flex gap-3">
+                                            <button type="submit" name="format" value="excel" class="btn btn-success">
+                                                <i class="fas fa-file-excel"></i> Download Excel
+                                            </button>
+                                            <button type="submit" name="format" value="pdf" class="btn btn-danger">
+                                                <i class="fas fa-file-pdf"></i> Download PDF
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Status Report -->
+            <div class="col-xl-6 col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">Order Status Report</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="orderStatusForm" method="post" action="{% url 'generate_order_status' %}">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="order_start_date" class="form-label">Start Date</label>
+                                        <input type="date" class="form-control" id="order_start_date" name="start_date" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="order_end_date" class="form-label">End Date</label>
+                                        <input type="date" class="form-control" id="order_end_date" name="end_date" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label class="form-label">Report Format</label>
+                                        <div class="d-flex gap-3">
+                                            <button type="submit" name="format" value="excel" class="btn btn-success">
+                                                <i class="fas fa-file-excel"></i> Download Excel
+                                            </button>
+                                            <button type="submit" name="format" value="pdf" class="btn btn-danger">
+                                                <i class="fas fa-file-pdf"></i> Download PDF
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats Cards -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">Quick Statistics</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-xl-3 col-md-6">
+                                <div class="card card-h-100 bg-primary text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-grow-1">
+                                                <span class="text-white-50">Today's Orders</span>
+                                                <h4 class="mb-0 text-white">{{ today_orders_count }}</h4>
+                                            </div>
+                                            <div class="flex-shrink-0">
+                                                <i class="fas fa-shopping-cart font-size-24"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-xl-3 col-md-6">
+                                <div class="card card-h-100 bg-success text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-grow-1">
+                                                <span class="text-white-50">Today's Revenue</span>
+                                                <h4 class="mb-0 text-white">${{ today_revenue }}</h4>
+                                            </div>
+                                            <div class="flex-shrink-0">
+                                                <i class="fas fa-dollar-sign font-size-24"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-xl-3 col-md-6">
+                                <div class="card card-h-100 bg-info text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-grow-1">
+                                                <span class="text-white-50">Pending Orders</span>
+                                                <h4 class="mb-0 text-white">{{ pending_orders_count }}</h4>
+                                            </div>
+                                            <div class="flex-shrink-0">
+                                                <i class="fas fa-clock font-size-24"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-xl-3 col-md-6">
+                                <div class="card card-h-100 bg-warning text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-grow-1">
+                                                <span class="text-white-50">This Month</span>
+                                                <h4 class="mb-0 text-white">${{ month_revenue }}</h4>
+                                            </div>
+                                            <div class="flex-shrink-0">
+                                                <i class="fas fa-chart-line font-size-24"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set today's date as default for all date inputs
+    const today = new Date().toISOString().split('T')[0];
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    
+    dateInputs.forEach(input => {
+        if (!input.value) {
+            input.value = today;
+        }
+    });
+
+    // Set end date when start date changes
+    const startDateInputs = document.querySelectorAll('input[name="start_date"]');
+    startDateInputs.forEach(startInput => {
+        startInput.addEventListener('change', function() {
+            const form = this.closest('form');
+            const endInput = form.querySelector('input[name="end_date"]');
+            if (endInput && !endInput.value) {
+                endInput.value = this.value;
+            }
+        });
+    });
+
+    // Form validation
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const startDate = this.querySelector('input[name="start_date"]').value;
+            const endDate = this.querySelector('input[name="end_date"]').value;
+            
+            if (new Date(startDate) > new Date(endDate)) {
+                e.preventDefault();
+                alert('Start date cannot be greater than end date');
+                return false;
+            }
+        });
+    });
+});
+</script>
+
+{% endblock %}

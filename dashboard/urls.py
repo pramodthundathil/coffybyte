@@ -38,4 +38,20 @@ urlpatterns = [
     # Receipt views (optional - you can implement these later)
     # path('sales/receipt/<int:order_id>/', views.print_receipt, name='print_receipt'),
     # path('sales/receipt/<int:order_id>/pdf/', views.receipt_pdf, name='receipt_pdf'),
+
+     path('reports_dashboard/', views.reports_dashboard, name='reports_dashboard'),
+    
+    # Report generation endpoints
+    path('daybook/', views.generate_daybook, name='generate_daybook'),
+    path('sales-summary/', views.generate_sales_summary, name='generate_sales_summary'),
+    path('payment-methods/', views.generate_payment_methods, name='generate_payment_methods'),
+    path('menu-performance/', views.generate_menu_performance, name='generate_menu_performance'),
+    path('tax-report/', views.generate_tax_report, name='generate_tax_report'),
+    path('order-status/', views.generate_order_status, name='generate_order_status'),
+
+     path('dashboard/chart-data/<str:chart_type>/', views.dashboard_chart_data, name='dashboard_chart_data'),
+    
+    # Additional dashboard endpoints you might need
+    path('dashboard/refresh-metrics/', views.refresh_metrics, name='refresh_metrics'),
+    path('dashboard/export-report/', views.export_dashboard_report, name='export_report'),
 ]

@@ -1,0 +1,522 @@
+{% extends 'index.html' %}
+{% block content %}
+
+{% load static %}
+
+<div class="content-page">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="d-flex flex-wrap align-items-center justify-content-between mb-4">
+                    <div>
+                        <h4 class="mb-3">
+                            Sale Details - Token #{{ order.token }}
+                            <span class="badge bg-primary">Order #{{ order.id }}</span>
+                        </h4>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item">
+                                    <a href="{% url 'list_sale' %}">Sales List</a>
+                                </li>
+                                <li class="breadcrumb-item active" aria-current="page">
+                                    Order #{{ order.id }}
+                                </li>
+                            </ol>
+                        </nav>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-primary" onclick="printReceipt()">
+                            <i class="fas fa-print"></i> Print Receipt
+                        </button>
+                        <a href="{% url 'list_sale' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Information -->
+            <div class="col-lg-8">
+                <!-- Order Header Info -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Order Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td><strong>Token:</strong></td>
+                                        <td><span class="badge bg-primary fs-6">#{{ order.token }}</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Order ID:</strong></td>
+                                        <td>{{ order.id }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Table/Method:</strong></td>
+                                        <td>
+                                            {% if order.table %}
+                                                {{ order.table }}
+                                            {% else %}
+                                                {{ order.order_method }}
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Order Date:</strong></td>
+                                        <td>{{ order.create_date|date:"M d, Y g:i A" }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td><strong>Status:</strong></td>
+                                        <td>
+                                            {% if order.status == 'Completed' %}
+                                                <span class="badge bg-success">{{ order.status }}</span>
+                                            {% elif order.status == 'In Progress' %}
+                                                <span class="badge bg-warning">{{ order.status }}</span>
+                                            {% elif order.status == 'Pending' %}
+                                                <span class="badge bg-secondary">{{ order.status }}</span>
+                                            {% else %}
+                                                <span class="badge bg-info">{{ order.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Payment Status:</strong></td>
+                                        <td>
+                                            {% if order.payment_status == 'Paid' %}
+                                                <span class="badge bg-success">Paid</span>
+                                            {% elif order.payment_status == 'Partial' %}
+                                                <span class="badge bg-warning">Partial</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Pending</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Payment Method:</strong></td>
+                                        <td>{{ order.payment_method|default:"Not specified" }}</td>
+                                    </tr>
+                                    {% if order.user %}
+                                    <tr>
+                                        <td><strong>Served by:</strong></td>
+                                        <td>{{ order.user.get_full_name|default:order.user.username }}</td>
+                                    </tr>
+                                    {% endif %}
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="card mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">Order Items</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Category</th>
+                                        <th>Quantity</th>
+                                        <th>Unit Price</th>
+                                        <th>Add-ons</th>
+                                        <th>Tax</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item_data in items_with_totals %}
+                                    {% with item=item_data.item %}
+                                    <tr>
+                                        <td>
+                                            <div>
+                                                <strong>{{ item.menu_item.name }}</strong>
+                                                {% if item.special_instructions %}
+                                                <br><small class="text-muted">
+                                                    <i class="fas fa-sticky-note"></i> {{ item.special_instructions }}
+                                                </small>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if item.menu_item.food_category %}
+                                                <span class="badge bg-light text-dark">
+                                                    {{ item.menu_item.food_category.name }}
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ item.quantity }}</span>
+                                        </td>
+                                        <td>${{ item.price|floatformat:2 }}</td>
+                                        <td>
+                                            {% if item.add_ons.exists %}
+                                                <ul class="list-unstyled mb-0">
+                                                    {% for addon in item.add_ons.all %}
+                                                    <li class="small">
+                                                        + {{ addon.name }} 
+                                                        <span class="text-success">${{ addon.price|floatformat:2 }}</span>
+                                                    </li>
+                                                    {% endfor %}
+                                                </ul>
+                                                <small class="text-muted">Total: ${{ item_data.addon_total|floatformat:2 }}</small>
+                                            {% else %}
+                                                <span class="text-muted">None</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if item.tax.exists %}
+                                                <ul class="list-unstyled mb-0">
+                                                    {% for tax in item.tax.all %}
+                                                    <li class="small">
+                                                        {{ tax.name }} ({{ tax.tax_percentage }}%)
+                                                    </li>
+                                                    {% endfor %}
+                                                </ul>
+                                                <small class="text-muted">${{ item_data.tax_amount|floatformat:2 }}</small>
+                                            {% else %}
+                                                <span class="text-muted">No tax</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <strong>${{ item_data.total_with_tax|floatformat:2 }}</strong>
+                                        </td>
+                                    </tr>
+                                    {% endwith %}
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center py-4">
+                                            <i class="fas fa-utensils fa-2x text-muted mb-2"></i>
+                                            <p class="text-muted mb-0">No items found in this order.</p>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Checkout Information -->
+                {% if checkout %}
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Checkout Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% if checkout.customer_name or checkout.customer_phone %}
+                            <div class="col-md-6">
+                                <h6>Customer Information</h6>
+                                <table class="table table-borderless">
+                                    {% if checkout.customer_name %}
+                                    <tr>
+                                        <td><strong>Name:</strong></td>
+                                        <td>{{ checkout.customer_name }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if checkout.customer_phone %}
+                                    <tr>
+                                        <td><strong>Phone:</strong></td>
+                                        <td>{{ checkout.customer_phone }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if checkout.delivery_address %}
+                                    <tr>
+                                        <td><strong>Address:</strong></td>
+                                        <td>{{ checkout.delivery_address }}</td>
+                                    </tr>
+                                    {% endif %}
+                                </table>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="col-md-6">
+                                <h6>Payment Information</h6>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td><strong>Method:</strong></td>
+                                        <td>{{ checkout.payment_method }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Status:</strong></td>
+                                        <td>
+                                            {% if checkout.payment_status == 'Paid' %}
+                                                <span class="badge bg-success">Paid</span>
+                                            {% elif checkout.payment_status == 'Partial' %}
+                                                <span class="badge bg-warning">Partial</span>
+                                            {% elif checkout.payment_status == 'Failed' %}
+                                                <span class="badge bg-danger">Failed</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ checkout.payment_status }}</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% if checkout.payment_reference %}
+                                    <tr>
+                                        <td><strong>Reference:</strong></td>
+                                        <td>{{ checkout.payment_reference }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    <tr>
+                                        <td><strong>Date:</strong></td>
+                                        <td>{{ checkout.datetime|date:"M d, Y g:i A" }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Split Payment Details -->
+                        {% if checkout.payment_method == 'Split Payment' %}
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6>Split Payment Breakdown</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Payment Type</th>
+                                                <th>Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% if checkout.cash_amount %}
+                                            <tr>
+                                                <td>Cash</td>
+                                                <td>${{ checkout.cash_amount|floatformat:2 }}</td>
+                                            </tr>
+                                            {% endif %}
+                                            {% if checkout.card_amount %}
+                                            <tr>
+                                                <td>Card</td>
+                                                <td>${{ checkout.card_amount|floatformat:2 }}</td>
+                                            </tr>
+                                            {% endif %}
+                                            {% if checkout.upi_amount %}
+                                            <tr>
+                                                <td>UPI</td>
+                                                <td>${{ checkout.upi_amount|floatformat:2 }}</td>
+                                            </tr>
+                                            {% endif %}
+                                            {% if checkout.other_amount %}
+                                            <tr>
+                                                <td>Other</td>
+                                                <td>${{ checkout.other_amount|floatformat:2 }}</td>
+                                            </tr>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if checkout.notes %}
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6>Notes</h6>
+                                <p class="text-muted">{{ checkout.notes }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Order Summary -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Order Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <td>Subtotal:</td>
+                                <td class="text-end">${{ order.total_before_tax|floatformat:2 }}</td>
+                            </tr>
+                            {% if order.total_tax %}
+                            <tr>
+                                <td>Tax:</td>
+                                <td class="text-end">${{ order.total_tax|floatformat:2 }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if checkout.service_charge %}
+                            <tr>
+                                <td>Service Charge:</td>
+                                <td class="text-end">${{ checkout.service_charge|floatformat:2 }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if checkout.discount_amount %}
+                            <tr class="text-success">
+                                <td>
+                                    Discount:
+                                    {% if checkout.discount_reason %}
+                                    <br><small>{{ checkout.discount_reason }}</small>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">-${{ checkout.discount_amount|floatformat:2 }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr class="border-top">
+                                <td><strong>Total:</strong></td>
+                                <td class="text-end">
+                                    <strong class="fs-5 text-success">
+                                        ${% if checkout %}{{ checkout.calculate_final_amount|floatformat:2 }}{% else %}{{ order.total_price|floatformat:2 }}{% endif %}
+                                    </strong>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">Quick Actions</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary" onclick="printReceipt()">
+                                <i class="fas fa-print"></i> Print Receipt
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="emailReceipt()">
+                                <i class="fas fa-envelope"></i> Email Receipt
+                            </button>
+                            <button class="btn btn-outline-info" onclick="downloadReceipt()">
+                                <i class="fas fa-download"></i> Download PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Timeline -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">Order Timeline</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-primary"></div>
+                                <div class="timeline-content">
+                                    <h6>Order Created</h6>
+                                    <p class="small text-muted mb-0">{{ order.create_date|date:"M d, Y g:i A" }}</p>
+                                </div>
+                            </div>
+                            {% if checkout %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-success"></div>
+                                <div class="timeline-content">
+                                    <h6>Payment Processed</h6>
+                                    <p class="small text-muted mb-0">{{ checkout.datetime|date:"M d, Y g:i A" }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if order.completion_status %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-info"></div>
+                                <div class="timeline-content">
+                                    <h6>Order Completed</h6>
+                                    <p class="small text-muted mb-0">Status: {{ order.status }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function printReceipt() {
+    window.print();
+}
+
+function emailReceipt() {
+    // Implement email functionality
+    alert('Email functionality to be implemented');
+}
+
+function downloadReceipt() {
+    // Implement PDF download functionality
+    window.open(`/sales/receipt/{{ order.id }}/pdf/`, '_blank');
+}
+</script>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #dee2e6;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -23px;
+    top: 5px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 0 0 2px #dee2e6;
+}
+
+.timeline-content {
+    background-color: #f8f9fa;
+    padding: 10px 15px;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+
+.timeline-content h6 {
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+@media print {
+    .btn, .card-header, nav, .timeline {
+        display: none !important;
+    }
+    
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    body {
+        font-size: 12px;
+    }
+}
+</style>
+
+<!-- Add Font Awesome if not already included -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+{% endblock %}
