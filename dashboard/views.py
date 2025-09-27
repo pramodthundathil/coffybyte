@@ -488,7 +488,7 @@ def get_weekly_comparison_data(request, store):
 
 def SignOut(request):
     logout(request)
-    return redirect("signin")
+    return redirect("SignIn")
 
 
 
