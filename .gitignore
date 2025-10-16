@@ -4,7 +4,8 @@
 *.sqlite3
 *.mdb
 *.accdb
-
+newstatic/
+media/
 # Ignore cache directories and files
 __pycache__/
 *.pyc

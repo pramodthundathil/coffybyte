@@ -38,6 +38,15 @@ class StoreContextMixin:
                 raise PermissionDenied("You are not associated with any active store.")
         return self.request.user_store
     
+    def initial(self, request, *args, **kwargs):
+        """
+        Called before anything else. This ensures user_store is set
+        before serializer validation happens.
+        """
+        super().initial(request, *args, **kwargs)
+        # Set user_store early so it's available during serializer initialization
+        self.get_user_store()
+    
     def get_queryset(self):
         """Filter queryset by user's store"""
         store = self.get_user_store()
@@ -264,8 +273,15 @@ class MenuListCreateView(StoreContextMixin, generics.ListCreateAPIView):
         if self.request.method == 'POST':
             return [IsStoreOwner()]
         return [IsAuthenticated()]
-
-
+    
+    def get_serializer_context(self):
+        """Ensure request is in context with user_store"""
+        context = super().get_serializer_context()
+        print(f"VIEW: get_serializer_context called")
+        print(f"VIEW: Request has user_store: {hasattr(self.request, 'user_store')}")
+        if hasattr(self.request, 'user_store'):
+            print(f"VIEW: user_store value: {self.request.user_store}")
+        return context
 class MenuRetrieveUpdateDestroyView(StoreContextMixin, generics.RetrieveUpdateDestroyAPIView):
     """
     get: Get menu item details (authenticated users)

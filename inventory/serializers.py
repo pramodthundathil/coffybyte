@@ -160,7 +160,6 @@ class MenuDetailSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['create_date', 'price_before_tax', 'total_tax_amount', 'store']
 
-
 class MenuCreateUpdateSerializer(serializers.ModelSerializer):
     taxes = serializers.PrimaryKeyRelatedField(
         queryset=Tax.objects.none(), 
@@ -187,21 +186,45 @@ class MenuCreateUpdateSerializer(serializers.ModelSerializer):
             'description', 'code', 'barcode', 'taxes', 'modifiers'
         ]
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def get_fields(self):
+        """Override get_fields to set querysets based on request context"""
+        fields = super().get_fields()
+        
         request = self.context.get('request')
+        
+        # Enhanced debugging
+        print("=" * 50)
+        print("DEBUG: get_fields() called")
+        print(f"Request object: {request}")
+        print(f"Has user_store attribute: {hasattr(request, 'user_store') if request else 'No request'}")
+        
+        if request:
+            print(f"Request user: {request.user}")
+            print(f"User authenticated: {request.user.is_authenticated if hasattr(request, 'user') else 'No user'}")
+            if hasattr(request, 'user_store'):
+                print(f"user_store value: {request.user_store}")
+        
         if request and hasattr(request, 'user_store'):
             store = request.user_store
-            # Debug: Print store and available modifiers
+            
+            # Debug: Print store and available data
             print(f"Current store: {store}")
-            print(f"Available modifiers: {list(Modifiers.objects.filter(store=store, status=True).values('id', 'name'))}")
+            categories = FoodCategory.objects.filter(store=store, active=True)
+            print(f"Available categories: {list(categories.values('id', 'name'))}")
+            print(f"Category 21 exists in queryset: {categories.filter(id=21).exists()}")
             
             # Filter querysets based on current user's store
-            self.fields['taxes'].queryset = Tax.objects.filter(store=store, is_active=True)
-            self.fields['modifiers'].queryset = Modifiers.objects.filter(store=store, status=True)
-            self.fields['category'].queryset = FoodCategory.objects.filter(store=store, active=True)
+            fields['taxes'].queryset = Tax.objects.filter(store=store, is_active=True)
+            fields['modifiers'].queryset = Modifiers.objects.filter(store=store, status=True)
+            fields['category'].queryset = FoodCategory.objects.filter(store=store, active=True)
+            
+            print(f"Category queryset count: {fields['category'].queryset.count()}")
         else:
-            print("No store found in request context")
+            print("WARNING: No store found in request context")
+            print(f"Context keys: {self.context.keys()}")
+        
+        print("=" * 50)
+        return fields
 
     def validate_modifiers(self, value):
         """Custom validation for modifiers"""
@@ -290,4 +313,4 @@ class MenuCreateUpdateSerializer(serializers.ModelSerializer):
         instance.calculate_tax_details()
         instance.save()
         
-        return instance
+        return instance 
