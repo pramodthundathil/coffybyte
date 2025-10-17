@@ -54,4 +54,23 @@ urlpatterns = [
     # Additional dashboard endpoints you might need
     path('dashboard/refresh-metrics/', views.refresh_metrics, name='refresh_metrics'),
     path('dashboard/export-report/', views.export_dashboard_report, name='export_report'),
+
+
+    
+    # B2B POS URLs - make sure they're properly namespaced
+    path('b2b_pos/', views.b2b_pos, name='b2b_pos'),
+    path('b2b/create-order/', views.create_b2b_order, name='create_b2b_order'),
+    path('b2b/add-item/', views.add_b2b_item, name='add_b2b_item'),
+    path('b2b/update-item/', views.update_b2b_item, name='update_b2b_item'),
+    path('b2b/remove-item/', views.remove_b2b_item, name='remove_b2b_item'),
+    path('b2b/order/<int:order_id>/details/', views.get_b2b_order_details, name='get_b2b_order_details'),
+    path('b2b/checkout/', views.checkout_b2b_order, name='checkout_b2b_order'),
+    path('b2b/search/', views.search_menu_items, name='search_menu_items'),
+    path('b2b/active-orders/', views.get_active_b2b_orders, name='get_active_b2b_orders'),
+
+    # B2B Sales Report URLs (NEW)
+    path('pos/b2b/sales/', views.b2b_sales_list, name='b2b_sales_list'),
+    path('pos/b2b/invoice/<int:order_id>/', views.b2b_invoice, name='b2b_invoice'),
+
 ]
+

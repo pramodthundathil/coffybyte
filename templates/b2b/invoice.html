@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice #{{ order.token }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            padding: 20px;
+            background: white;
+        }
+        
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border: 2px solid #333;
+        }
+        
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #4472C4;
+        }
+        
+        .company-info h1 {
+            color: #4472C4;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        
+        .company-info p {
+            margin: 3px 0;
+            color: #555;
+        }
+        
+        .invoice-title {
+            text-align: right;
+        }
+        
+        .invoice-title h2 {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .invoice-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        
+        .detail-box {
+            flex: 1;
+            padding: 15px;
+            background: #f8f9fa;
+            margin: 0 5px;
+            border-radius: 5px;
+        }
+        
+        .detail-box h3 {
+            color: #4472C4;
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        
+        .detail-box p {
+            margin: 5px 0;
+            color: #333;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .items-table thead {
+            background: #4472C4;
+            color: white;
+        }
+        
+        .items-table th,
+        .items-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .items-table th {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+        
+        .items-table tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .items-table tbody tr:hover {
+            background: #e9ecef;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .addon-row td {
+            padding-left: 30px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .note-row td {
+            padding-left: 30px;
+            font-style: italic;
+            color: #888;
+            font-size: 11px;
+        }
+        
+        .totals-section {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        .totals-table {
+            width: 350px;
+        }
+        
+        .totals-table tr {
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .totals-table td {
+            padding: 10px;
+        }
+        
+        .totals-table .total-row {
+            background: #4472C4;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+            text-align: center;
+            color: #777;
+        }
+        
+        .payment-info {
+            background: #fff3cd;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .payment-info h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        @media print {
+            body {
+                padding: 0;
+            }
+            
+            .invoice-container {
+                border: none;
+                padding: 0;
+            }
+            
+            .no-print {
+                display: none;
+            }
+        }
+        
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 30px;
+            background: #4472C4;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .print-button:hover {
+            background: #365a9e;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button no-print" onclick="window.print()">
+        🖨️ Print Invoice
+    </button>
+    
+    <div class="invoice-container">
+        <!-- Header -->
+        <div class="invoice-header">
+            <div class="company-info">
+                <h1>{{ store.name }}</h1>
+                {% if store.address %}
+                <p>{{ store.address }}</p>
+                {% endif %}
+                {% if store.phone %}
+                <p>Phone: {{ store.phone }}</p>
+                {% endif %}
+                {% if store.email %}
+                <p>Email: {{ store.email }}</p>
+                {% endif %}
+            </div>
+            <div class="invoice-title">
+                <h2>INVOICE</h2>
+                <p><strong>Token #{{ order.token }}</strong></p>
+                <p>{{ order.create_date|date:"d M, Y" }}</p>
+                <p>{{ order.create_date|time:"h:i A" }}</p>
+            </div>
+        </div>
+        
+        <!-- Invoice Details -->
+        <div class="invoice-details">
+            <div class="detail-box">
+                <h3>Bill To</h3>
+                {% if order.checkout %}
+                    {% if order.checkout.customer_name %}
+                        <p><strong>{{ order.checkout.customer_name }}</strong></p>
+                    {% else %}
+                        <p><strong>Walk-in Customer</strong></p>
+                    {% endif %}
+                    {% if order.checkout.customer_phone %}
+                        <p>Phone: {{ order.checkout.customer_phone }}</p>
+                    {% endif %}
+                {% else %}
+                    <p><strong>Walk-in Customer</strong></p>
+                {% endif %}
+            </div>
+            
+            <div class="detail-box">
+                <h3>Order Details</h3>
+                <p><strong>Order Type:</strong> {{ order.order_method }}</p>
+                <p><strong>Status:</strong> {{ order.status }}</p>
+                <p><strong>Payment:</strong> {{ order.payment_method|default:"N/A" }}</p>
+            </div>
+        </div>
+        
+        <!-- Items Table -->
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th class="text-center">Quantity</th>
+                    <th class="text-right">Unit Price</th>
+                    <th class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td><strong>{{ item.menu_item.name }}</strong></td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <td class="text-right">₹{{ item.price|floatformat:2 }}</td>
+                    <td class="text-right">₹{{ item.price|floatformat:2 }}</td>
+                </tr>
+                
+                {% if item.special_instructions %}
+                <tr class="note-row">
+                    <td colspan="4">Note: {{ item.special_instructions }}</td>
+                </tr>
+                {% endif %}
+                
+                {% for addon in item.add_ons.all %}
+                <tr class="addon-row">
+                    <td>+ {{ addon.name }}</td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <td class="text-right">₹{{ addon.price|floatformat:2 }}</td>
+                    <td class="text-right">₹{{ addon.price|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- Totals -->
+        <div class="totals-section">
+            <table class="totals-table">
+                <tr>
+                    <td><strong>Subtotal:</strong></td>
+                    <td class="text-right">₹{{ order.total_before_tax|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Tax:</strong></td>
+                    <td class="text-right">₹{{ order.total_tax|floatformat:2 }}</td>
+                </tr>
+                {% if order.checkout.discount_amount %}
+                <tr>
+                    <td><strong>Discount:</strong></td>
+                    <td class="text-right" style="color: #dc3545;">-₹{{ order.checkout.discount_amount|floatformat:2 }}</td>
+                </tr>
+                {% endif %}
+                <tr class="total-row">
+                    <td><strong>TOTAL:</strong></td>
+                    <td class="text-right">
+                        <strong>₹{% if order.checkout.discount_amount %}{{ order.checkout.calculate_final_amount|floatformat:2 }}{% else %}{{ order.total_price|floatformat:2 }}{% endif %}</strong>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- Payment Info -->
+        {% if order.payment_status == 'Paid' %}
+        <div class="payment-info">
+            <h4>✓ Payment Received</h4>
+            <p>Payment Method: <strong>{{ order.payment_method }}</strong></p>
+            <p>Status: <strong>{{ order.payment_status }}</strong></p>
+        </div>
+        {% endif %}
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>Thank you for your business!</strong></p>
+            <p>This is a computer-generated invoice and does not require a signature.</p>
+            <p style="margin-top: 10px;">Generated on {{ order.create_date|date:"d M, Y h:i A" }}</p>
+        </div>
+    </div>
+    
+    <script>
+        // Auto-print on load (optional)
+        // window.onload = function() { window.print(); }
+    </script>
+</body>
+</html>

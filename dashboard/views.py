@@ -2005,3 +2005,1039 @@ def generate_order_status_pdf(status_data, start_date, end_date, store):
     response = HttpResponse(buffer, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="order_status_{start_date}_{end_date}.pdf"'
     return response
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from decimal import Decimal
+from datetime import datetime
+import json
+import traceback
+
+from inventory.models import Menu, Tax, FoodCategory, Modifiers
+from orders.models import Order, OrderItem, Tables, Checkout
+from authentication.models import Store
+
+
+@login_required
+def b2b_pos(request):
+    """Main B2B POS Screen"""
+    try:
+        # Get user's store
+        store_membership = request.user.store_memberships.first()
+        if not store_membership:
+            return render(request, 'error.html', {'message': 'No store assigned'})
+        
+        store = store_membership.store
+        
+        # Get all menu items for this store
+        menu_items = Menu.objects.filter(
+            store=store,
+            status=True
+        ).select_related('category').prefetch_related('taxes', 'modifiers')
+        
+        # Get categories
+        categories = FoodCategory.objects.filter(store=store, active=True)
+        
+        # Get tables for order method
+        tables = Tables.objects.filter(status=True).order_by('Table_number')
+        
+        # Get taxes
+        taxes = Tax.objects.filter(store=store, is_active=True)
+        
+        # Get active B2B orders (not completed)
+        active_orders = Order.objects.filter(
+            store=store,
+            order_method='B2B',
+            completion_status=False
+        ).order_by('-create_date')[:10]
+        
+        context = {
+            'menu_items': menu_items,
+            'categories': categories,
+            'tables': tables,
+            'taxes': taxes,
+            'active_orders': active_orders,
+            'store': store,
+        }
+        
+        return render(request, 'b2b/index.html', context)
+    
+    except Exception as e:
+        print(f"Error in b2b_pos: {str(e)}")
+        traceback.print_exc()
+        return render(request, 'error.html', {'message': str(e)})
+
+
+@login_required
+@require_http_methods(["POST"])
+def create_b2b_order(request):
+    """Create a new B2B order"""
+    try:
+        # Try to parse JSON, if it fails, it might be empty POST
+        try:
+            data = json.loads(request.body) if request.body else {}
+        except json.JSONDecodeError:
+            data = {}
+        
+        store_membership = request.user.store_memberships.first()
+        
+        if not store_membership:
+            return JsonResponse({
+                'success': False, 
+                'message': 'No store assigned to user'
+            }, status=400)
+        
+        store = store_membership.store
+        
+        with transaction.atomic():
+            # Create order
+            order = Order.objects.create(
+                store=store,
+                user=request.user,
+                order_method='B2B',
+                status='Pending',
+                checkout_status=False,
+                completion_status=False
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'order_id': order.id,
+                'token': order.token,
+                'message': 'B2B Order created successfully'
+            })
+    
+    except Exception as e:
+        print(f"Error in create_b2b_order: {str(e)}")
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False, 
+            'message': f'Error creating order: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def add_b2b_item(request):
+    """Add item to B2B order with custom price"""
+    try:
+        # Parse JSON data
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError as e:
+            return JsonResponse({
+                'success': False, 
+                'message': f'Invalid JSON data: {str(e)}'
+            }, status=400)
+        
+        order_id = data.get('order_id')
+        menu_item_id = data.get('menu_item_id')
+        custom_price = data.get('custom_price')
+        quantity = data.get('quantity', 1)
+        special_instructions = data.get('special_instructions', '')
+        addon_ids = data.get('addon_ids', [])
+        
+        # Validate required fields
+        if not order_id:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Order ID is required'
+            }, status=400)
+        
+        if not menu_item_id:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Menu item ID is required'
+            }, status=400)
+        
+        if not custom_price:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Custom price is required'
+            }, status=400)
+        
+        # Convert to proper types
+        try:
+            custom_price = Decimal(str(custom_price))
+            quantity = int(quantity)
+        except (ValueError, TypeError) as e:
+            return JsonResponse({
+                'success': False, 
+                'message': f'Invalid price or quantity: {str(e)}'
+            }, status=400)
+        
+        # Validate custom price
+        if custom_price <= 0:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Price must be greater than 0'
+            }, status=400)
+        
+        # Get objects
+        try:
+            order = Order.objects.get(id=order_id)
+            menu_item = Menu.objects.get(id=menu_item_id)
+        except Order.DoesNotExist:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Order not found'
+            }, status=404)
+        except Menu.DoesNotExist:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Menu item not found'
+            }, status=404)
+        
+        with transaction.atomic():
+            # Create order item with custom price
+            order_item = OrderItem.objects.create(
+                order=order,
+                menu_item=menu_item,
+                quantity=quantity,
+                price=custom_price,
+                special_instructions=special_instructions,
+                is_saved_for_later=False
+            )
+            
+            # Add taxes from menu item
+            if menu_item.taxes.exists():
+                order_item.tax.set(menu_item.taxes.all())
+            
+            # Add modifiers/addons if selected
+            if addon_ids:
+                modifiers = Modifiers.objects.filter(id__in=addon_ids)
+                order_item.add_ons.set(modifiers)
+            
+            # Calculate totals
+            order.calculate_totals()
+            order.save()
+            
+            # Get item details for response
+            addon_total = sum(addon.price for addon in order_item.add_ons.all())
+            item_data = {
+                'id': order_item.id,
+                'name': menu_item.name,
+                'quantity': quantity,
+                'price': float(custom_price),
+                'addon_total': float(addon_total),
+                'total': float(order_item.get_total_price_with_addons()),
+                'tax_amount': float(order_item.get_tax_amount())
+            }
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Item added successfully',
+                'item': item_data,
+                'order_total': float(order.total_price),
+                'order_tax': float(order.total_tax),
+                'order_subtotal': float(order.total_before_tax)
+            })
+    
+    except Exception as e:
+        print(f"Error in add_b2b_item: {str(e)}")
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False, 
+            'message': f'Error adding item: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def update_b2b_item(request):
+    """Update B2B order item (quantity or price)"""
+    try:
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError as e:
+            return JsonResponse({
+                'success': False, 
+                'message': f'Invalid JSON data: {str(e)}'
+            }, status=400)
+        
+        item_id = data.get('item_id')
+        quantity = data.get('quantity')
+        custom_price = data.get('custom_price')
+        
+        if not item_id:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Item ID is required'
+            }, status=400)
+        
+        try:
+            order_item = OrderItem.objects.get(id=item_id)
+        except OrderItem.DoesNotExist:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Order item not found'
+            }, status=404)
+        
+        with transaction.atomic():
+            if quantity is not None:
+                try:
+                    order_item.quantity = int(quantity)
+                except (ValueError, TypeError):
+                    return JsonResponse({
+                        'success': False, 
+                        'message': 'Invalid quantity'
+                    }, status=400)
+            
+            if custom_price is not None:
+                try:
+                    order_item.price = Decimal(str(custom_price))
+                except (ValueError, TypeError):
+                    return JsonResponse({
+                        'success': False, 
+                        'message': 'Invalid price'
+                    }, status=400)
+            
+            order_item.save()
+            
+            # Recalculate order totals
+            order_item.order.calculate_totals()
+            order_item.order.save()
+            
+            addon_total = sum(addon.price for addon in order_item.add_ons.all())
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Item updated successfully',
+                'item_total': float(order_item.get_total_price_with_addons()),
+                'order_total': float(order_item.order.total_price),
+                'order_tax': float(order_item.order.total_tax),
+                'order_subtotal': float(order_item.order.total_before_tax)
+            })
+    
+    except Exception as e:
+        print(f"Error in update_b2b_item: {str(e)}")
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False, 
+            'message': f'Error updating item: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def remove_b2b_item(request):
+    """Remove item from B2B order"""
+    try:
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError as e:
+            return JsonResponse({
+                'success': False, 
+                'message': f'Invalid JSON data: {str(e)}'
+            }, status=400)
+        
+        item_id = data.get('item_id')
+        
+        if not item_id:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Item ID is required'
+            }, status=400)
+        
+        try:
+            order_item = OrderItem.objects.get(id=item_id)
+        except OrderItem.DoesNotExist:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Order item not found'
+            }, status=404)
+        
+        order = order_item.order
+        
+        with transaction.atomic():
+            order_item.delete()
+            
+            # Recalculate order totals
+            order.calculate_totals()
+            order.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Item removed successfully',
+                'order_total': float(order.total_price),
+                'order_tax': float(order.total_tax),
+                'order_subtotal': float(order.total_before_tax)
+            })
+    
+    except Exception as e:
+        print(f"Error in remove_b2b_item: {str(e)}")
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False, 
+            'message': f'Error removing item: {str(e)}'
+        }, status=500)
+
+
+# @login_required
+# @require_http_methods(["GET"])
+# def get_b2b_order_details(request, order_id):
+#     """Get B2B order details"""
+#     try:
+#         try:
+#             order = Order.objects.get(id=order_id)
+#         except Order.DoesNotExist:
+#             return JsonResponse({
+#                 'success': False, 
+#                 'message': 'Order not found'
+#             }, status=404)
+        
+#         items = []
+#         for item in order.items.all():
+#             addon_total = sum(Decimal(str(addon.price)) for addon in item.add_ons.all())
+#             items.append({
+#                 'id': item.id,
+#                 'menu_item_id': item.menu_item.id,
+#                 'name': item.menu_item.name,
+#                 'quantity': item.quantity,
+#                 'price': float(item.price),
+#                 'addon_total': float(addon_total),
+#                 'total': float(item.get_total_price_with_addons()),
+#                 'tax_amount': float(item.get_tax_amount()),
+#                 'special_instructions': item.special_instructions or '',
+#                 'addons': [{'id': a.id, 'name': a.name, 'price': float(a.price)} 
+#                           for a in item.add_ons.all()]
+#             })
+        
+#         return JsonResponse({
+#             'success': True,
+#             'order': {
+#                 'id': order.id,
+#                 'token': order.token,
+#                 'status': order.status,
+#                 'order_method': order.order_method,
+#                 'total_price': float(order.total_price),
+#                 'total_tax': float(order.total_tax),
+#                 'total_before_tax': float(order.total_before_tax),
+#                 'items': items
+#             }
+#         })
+    
+#     except Exception as e:
+#         print(f"Error in get_b2b_order_details: {str(e)}")
+#         traceback.print_exc()
+#         return JsonResponse({
+#             'success': False, 
+#             'message': f'Error getting order details: {str(e)}'
+#         }, status=500)
+
+
+@login_required
+@require_http_methods(["POST"])
+def checkout_b2b_order(request):
+    """Checkout B2B order"""
+    try:
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError as e:
+            return JsonResponse({
+                'success': False, 
+                'message': f'Invalid JSON data: {str(e)}'
+            }, status=400)
+        
+        order_id = data.get('order_id')
+        payment_method = data.get('payment_method', 'Cash')
+        customer_name = data.get('customer_name', '')
+        customer_phone = data.get('customer_phone', '')
+        discount_amount = Decimal(str(data.get('discount_amount', 0)))
+        discount_reason = data.get('discount_reason', '')
+        
+        if not order_id:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Order ID is required'
+            }, status=400)
+        
+        try:
+            order = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Order not found'
+            }, status=404)
+        
+        with transaction.atomic():
+            # Create checkout
+            checkout = Checkout.objects.create(
+                order=order,
+                total_price=order.total_price,
+                tax_amount=order.total_tax,
+                payment_method=payment_method,
+                payment_status='Paid',
+                customer_name=customer_name,
+                customer_phone=customer_phone,
+                discount_amount=discount_amount,
+                discount_reason=discount_reason
+            )
+            
+            # Update order status
+            order.checkout_status = True
+            order.status = 'Completed'
+            order.completion_status = True
+            order.payment_method = payment_method
+            order.payment_status = 'Paid'
+            order.save()
+            
+            final_amount = checkout.calculate_final_amount()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Order completed successfully',
+                'checkout_id': checkout.id,
+                'final_amount': float(final_amount),
+                'order_token': order.token
+            })
+    
+    except Exception as e:
+        print(f"Error in checkout_b2b_order: {str(e)}")
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False, 
+            'message': f'Error completing checkout: {str(e)}'
+        }, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def search_menu_items(request):
+    """Search menu items for B2B POS"""
+    try:
+        query = request.GET.get('q', '')
+        store_membership = request.user.store_memberships.first()
+        
+        if not store_membership:
+            return JsonResponse({
+                'success': False, 
+                'message': 'No store assigned'
+            }, status=400)
+        
+        store = store_membership.store
+        
+        menu_items = Menu.objects.filter(
+            store=store,
+            status=True
+        ).filter(
+            name__icontains=query
+        ) | Menu.objects.filter(
+            store=store,
+            status=True,
+            code__icontains=query
+        ) | Menu.objects.filter(
+            store=store,
+            status=True,
+            barcode__icontains=query
+        )
+        
+        results = []
+        for item in menu_items[:20]:  # Limit to 20 results
+            results.append({
+                'id': item.id,
+                'name': item.name,
+                'category': item.category.name,
+                'price': float(item.price),
+                'code': item.code or '',
+                'image': item.image.url if item.image else None
+            })
+        
+        return JsonResponse({'success': True, 'items': results})
+    
+    except Exception as e:
+        print(f"Error in search_menu_items: {str(e)}")
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False, 
+            'message': f'Error searching items: {str(e)}'
+        }, status=500)
+    
+
+@login_required
+@require_http_methods(["GET"])
+def get_active_b2b_orders(request):
+    """Get active B2B orders for live updates"""
+    try:
+        store_membership = request.user.store_memberships.first()
+        
+        if not store_membership:
+            return JsonResponse({
+                'success': False, 
+                'message': 'No store assigned'
+            }, status=400)
+        
+        store = store_membership.store
+        
+        # Get active B2B orders
+        active_orders = Order.objects.filter(
+            store=store,
+            order_method='B2B',
+            completion_status=False
+        ).order_by('-create_date')[:10]
+        
+        orders_data = []
+        for order in active_orders:
+            orders_data.append({
+                'id': order.id,
+                'token': order.token,
+                'status': order.status,
+                'total_price': float(order.total_price or 0),
+                'time': order.create_date.strftime('%I:%M %p'),
+                'items_count': order.items.filter(is_saved_for_later=False).count()
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'orders': orders_data
+        })
+    
+    except Exception as e:
+        print(f"Error in get_active_b2b_orders: {str(e)}")
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False, 
+            'message': f'Error getting orders: {str(e)}'
+        }, status=500)
+# Make sure you also have this view (it should already exist in your views.py)
+
+@login_required
+@require_http_methods(["GET"])
+def get_b2b_order_details(request, order_id):
+    """Get B2B order details"""
+    try:
+        try:
+            order = Order.objects.get(id=order_id)
+        except Order.DoesNotExist:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Order not found'
+            }, status=404)
+        
+        # Only get items not saved for later
+        items = []
+        order_items = order.items.filter(is_saved_for_later=False)
+        
+        for item in order_items:
+            addon_total = sum(Decimal(str(addon.price)) for addon in item.add_ons.all())
+            
+            # Calculate item total with addons
+            item_base_total = (Decimal(str(item.price)) + addon_total) * item.quantity
+            
+            # Calculate tax for this item
+            item_tax_total = Decimal('0.00')
+            for tax in item.tax.all():
+                tax_amount = (item_base_total * tax.tax_percentage) / 100
+                item_tax_total += tax_amount
+            
+            items.append({
+                'id': item.id,
+                'menu_item_id': item.menu_item.id,
+                'name': item.menu_item.name,
+                'quantity': item.quantity,
+                'price': float(item.price),
+                'addon_total': float(addon_total),
+                'total': float(item_base_total),
+                'tax_amount': float(item_tax_total),
+                'special_instructions': item.special_instructions or '',
+                'addons': [{'id': a.id, 'name': a.name, 'price': float(a.price)} 
+                          for a in item.add_ons.all()]
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'order': {
+                'id': order.id,
+                'token': order.token,
+                'status': order.status,
+                'order_method': order.order_method,
+                'total_price': float(order.total_price or 0),
+                'total_tax': float(order.total_tax or 0),
+                'total_before_tax': float(order.total_before_tax or 0),
+                'items': items
+            }
+        })
+    
+    except Exception as e:
+        print(f"Error in get_b2b_order_details: {str(e)}")
+        traceback.print_exc()
+        return JsonResponse({
+            'success': False, 
+            'message': f'Error getting order details: {str(e)}'
+        }, status=500)
+
+# b2b sale list 
+
+@login_required
+def b2b_sales_list(request):
+    """B2B Sales List with filtering and sorting"""
+    try:
+        store_membership = request.user.store_memberships.first()
+        if not store_membership:
+            return render(request, 'error.html', {'message': 'No store assigned'})
+        
+        store = store_membership.store
+        
+        # Base queryset - ALL B2B orders (including pending)
+        orders = Order.objects.filter(
+            store=store,
+            order_method='B2B'
+        ).select_related('checkout').prefetch_related('items')
+        
+        # Get filter parameters
+        date_from = request.GET.get('date_from')
+        date_to = request.GET.get('date_to')
+        status = request.GET.get('status')
+        payment_status = request.GET.get('payment_status')
+        payment_method = request.GET.get('payment_method')
+        completion = request.GET.get('completion')
+        search = request.GET.get('search')
+        
+        # Apply filters
+        if date_from:
+            try:
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
+                orders = orders.filter(create_date__gte=date_from_obj)
+            except ValueError:
+                pass
+        
+        if date_to:
+            try:
+                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
+                # Add one day to include the entire end date
+                date_to_obj = date_to_obj + timedelta(days=1)
+                orders = orders.filter(create_date__lt=date_to_obj)
+            except ValueError:
+                pass
+        
+        if status:
+            orders = orders.filter(status=status)
+        
+        if payment_status:
+            orders = orders.filter(payment_status=payment_status)
+        
+        if payment_method:
+            orders = orders.filter(payment_method=payment_method)
+        
+        if completion:
+            if completion == 'completed':
+                orders = orders.filter(completion_status=True)
+            elif completion == 'pending':
+                orders = orders.filter(completion_status=False)
+        
+        if search:
+            orders = orders.filter(
+                Q(token__icontains=search) |
+                Q(checkout__customer_name__icontains=search) |
+                Q(checkout__customer_phone__icontains=search)
+            )
+        
+        # Sorting
+        sort_by = request.GET.get('sort', 'create_date')
+        order_direction = request.GET.get('order', 'desc')
+        
+        valid_sort_fields = ['token', 'create_date', 'total_price', 'status']
+        if sort_by not in valid_sort_fields:
+            sort_by = 'create_date'
+        
+        if order_direction == 'asc':
+            orders = orders.order_by(sort_by)
+        else:
+            orders = orders.order_by(f'-{sort_by}')
+        
+        # Calculate statistics
+        stats = {
+            'total_orders': orders.count(),
+            'total_sales': orders.aggregate(total=Sum('total_price'))['total'] or Decimal('0.00'),
+            'total_tax': orders.aggregate(tax=Sum('total_tax'))['tax'] or Decimal('0.00'),
+            'avg_order_value': orders.aggregate(avg=Avg('total_price'))['avg'] or Decimal('0.00'),
+        }
+        
+        # Completion stats
+        stats['completed_orders'] = orders.filter(completion_status=True).count()
+        stats['pending_orders'] = orders.filter(completion_status=False).count()
+        
+        # Payment stats
+        stats['paid_orders'] = orders.filter(payment_status='Paid').count()
+        stats['pending_payment'] = orders.filter(payment_status='Pending').count()
+        
+        # Today's stats
+        today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        today_orders = orders.filter(create_date__gte=today_start)
+        stats['today_orders'] = today_orders.count()
+        stats['today_sales'] = today_orders.aggregate(total=Sum('total_price'))['total'] or Decimal('0.00')
+        
+        # Check for export request
+        export_type = request.GET.get('export')
+        if export_type == 'excel':
+            return export_b2b_sales_excel(orders, stats)
+        elif export_type == 'pdf':
+            return export_b2b_sales_pdf(orders, stats)
+        
+        # Pagination
+        paginator = Paginator(orders, 25)  # 25 orders per page
+        page_number = request.GET.get('page', 1)
+        
+        try:
+            page_obj = paginator.get_page(page_number)
+        except:
+            page_obj = paginator.get_page(1)
+        
+        # Build query string for pagination links
+        query_params = request.GET.copy()
+        if 'page' in query_params:
+            query_params.pop('page')
+        query_string = query_params.urlencode()
+        
+        context = {
+            'orders': page_obj,
+            'stats': stats,
+            'filters': {
+                'date_from': date_from or '',
+                'date_to': date_to or '',
+                'status': status or '',
+                'payment_status': payment_status or '',
+                'payment_method': payment_method or '',
+                'completion': completion or '',
+                'search': search or '',
+            },
+            'sort_by': sort_by,
+            'order': order_direction,
+            'query_string': query_string,
+        }
+        
+        return render(request, 'b2b/sales_list.html', context)
+    
+    except Exception as e:
+        print(f"Error in b2b_sales_list: {str(e)}")
+        traceback.print_exc()
+        return render(request, 'error.html', {'message': str(e)})
+
+
+def export_b2b_sales_excel(orders, stats):
+    """Export B2B sales to Excel"""
+    import openpyxl
+    from openpyxl.styles import Font, Alignment, PatternFill
+    from django.http import HttpResponse
+    
+    # Create workbook
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "B2B Sales Report"
+    
+    # Header style
+    header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+    header_font = Font(bold=True, color="FFFFFF")
+    
+    # Add summary
+    ws['A1'] = 'B2B SALES REPORT'
+    ws['A1'].font = Font(bold=True, size=16)
+    ws.merge_cells('A1:I1')
+    
+    ws['A3'] = 'Total Orders:'
+    ws['B3'] = stats['total_orders']
+    ws['A4'] = 'Total Sales:'
+    ws['B4'] = float(stats['total_sales'])
+    ws['A5'] = 'Total Tax:'
+    ws['B5'] = float(stats['total_tax'])
+    ws['A6'] = 'Average Order:'
+    ws['B6'] = float(stats['avg_order_value'])
+    
+    # Headers
+    headers = ['Token', 'Date', 'Time', 'Customer', 'Phone', 'Items', 'Payment', 'Amount', 'Tax', 'Status']
+    for col, header in enumerate(headers, start=1):
+        cell = ws.cell(row=8, column=col)
+        cell.value = header
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal='center')
+    
+    # Data
+    row = 9
+    for order in orders:
+        ws.cell(row=row, column=1).value = f"#{order.token}"
+        ws.cell(row=row, column=2).value = order.create_date.strftime('%Y-%m-%d')
+        ws.cell(row=row, column=3).value = order.create_date.strftime('%H:%M:%S')
+        
+        if hasattr(order, 'checkout') and order.checkout:
+            ws.cell(row=row, column=4).value = order.checkout.customer_name or 'Walk-in'
+            ws.cell(row=row, column=5).value = order.checkout.customer_phone or ''
+        else:
+            ws.cell(row=row, column=4).value = 'Walk-in'
+            ws.cell(row=row, column=5).value = ''
+        
+        ws.cell(row=row, column=6).value = order.items.count()
+        ws.cell(row=row, column=7).value = order.payment_method or 'N/A'
+        ws.cell(row=row, column=8).value = float(order.total_price)
+        ws.cell(row=row, column=9).value = float(order.total_tax)
+        ws.cell(row=row, column=10).value = order.status
+        
+        row += 1
+    
+    # Auto-adjust column widths
+    for column in ws.columns:
+        max_length = 0
+        column_letter = column[0].column_letter
+        for cell in column:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(str(cell.value))
+            except:
+                pass
+        adjusted_width = min(max_length + 2, 50)
+        ws.column_dimensions[column_letter].width = adjusted_width
+    
+    # Create response
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = f'attachment; filename=B2B_Sales_Report_{timezone.now().strftime("%Y%m%d_%H%M%S")}.xlsx'
+    
+    wb.save(response)
+    return response
+
+
+def export_b2b_sales_pdf(orders, stats):
+    """Export B2B sales to PDF"""
+    from django.http import HttpResponse
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.lib.enums import TA_CENTER, TA_RIGHT
+    import io
+    
+    # Create buffer
+    buffer = io.BytesIO()
+    
+    # Create PDF
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4))
+    elements = []
+    
+    # Styles
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        textColor=colors.HexColor('#4472C4'),
+        alignment=TA_CENTER,
+        spaceAfter=30
+    )
+    
+    # Title
+    elements.append(Paragraph("B2B SALES REPORT", title_style))
+    elements.append(Spacer(1, 0.3*inch))
+    
+    # Summary statistics
+    summary_data = [
+        ['Total Orders', 'Total Sales', 'Total Tax', 'Average Order'],
+        [
+            str(stats['total_orders']),
+            f"₹{stats['total_sales']:.2f}",
+            f"₹{stats['total_tax']:.2f}",
+            f"₹{stats['avg_order_value']:.2f}"
+        ]
+    ]
+    
+    summary_table = Table(summary_data, colWidths=[2*inch, 2*inch, 2*inch, 2*inch])
+    summary_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#4472C4')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    
+    elements.append(summary_table)
+    elements.append(Spacer(1, 0.5*inch))
+    
+    # Orders table
+    table_data = [['Token', 'Date', 'Customer', 'Items', 'Payment', 'Amount', 'Tax', 'Status']]
+    
+    for order in orders:
+        customer = 'Walk-in'
+        if hasattr(order, 'checkout') and order.checkout and order.checkout.customer_name:
+            customer = order.checkout.customer_name
+        
+        table_data.append([
+            f"#{order.token}",
+            order.create_date.strftime('%d/%m/%Y %H:%M'),
+            customer[:20],  # Truncate long names
+            str(order.items.count()),
+            order.payment_method or 'N/A',
+            f"₹{order.total_price:.2f}",
+            f"₹{order.total_tax:.2f}",
+            order.status
+        ])
+    
+    orders_table = Table(table_data, colWidths=[0.8*inch, 1.3*inch, 1.5*inch, 0.7*inch, 1*inch, 1*inch, 0.9*inch, 1*inch])
+    orders_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#4472C4')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('FONTSIZE', (0, 1), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.lightgrey])
+    ]))
+    
+    elements.append(orders_table)
+    
+    # Build PDF
+    doc.build(elements)
+    
+    # Get PDF value
+    pdf = buffer.getvalue()
+    buffer.close()
+    
+    # Create response
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename=B2B_Sales_Report_{timezone.now().strftime("%Y%m%d_%H%M%S")}.pdf'
+    response.write(pdf)
+    
+    return response
+
+
+@login_required
+def b2b_invoice(request, order_id):
+    """Generate printable B2B invoice"""
+    try:
+        order = Order.objects.get(id=order_id)
+        store_membership = request.user.store_memberships.first()
+        
+        if not store_membership:
+            return render(request, 'error.html', {'message': 'No store assigned'})
+        
+        store = store_membership.store
+        
+        # Get order items
+        items = order.items.filter(is_saved_for_later=False)
+        
+        context = {
+            'order': order,
+            'store': store,
+            'items': items,
+        }
+        
+        return render(request, 'b2b/invoice.html', context)
+    
+    except Order.DoesNotExist:
+        return render(request, 'error.html', {'message': 'Order not found'})
+    except Exception as e:
+        print(f"Error in b2b_invoice: {str(e)}")
+        traceback.print_exc()
+        return render(request, 'error.html', {'message': str(e)})

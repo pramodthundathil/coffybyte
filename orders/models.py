@@ -166,6 +166,31 @@ class OrderItem(models.Model):
         self.is_saved_for_later = True
         self.moved_to_checkout_date = None
         self.save()
+    
+    def get_total_price_with_addons(self):
+        """Get total price including addons"""
+        from decimal import Decimal
+        
+        # Base price * quantity
+        total = self.price * self.quantity
+        
+        # Add addon prices
+        for addon in self.add_ons.all():
+            total += addon.price * self.quantity
+        
+        return total
+    
+    def get_tax_amount(self):
+        """Calculate total tax for this item"""
+        from decimal import Decimal
+        
+        base_amount = self.get_total_price_with_addons()
+        tax_amount = Decimal('0.00')
+        
+        for tax in self.tax.all():
+            tax_amount += (base_amount * tax.percentage) / 100
+        
+        return tax_amount
 
     def __str__(self):
         status = " (Saved)" if self.is_saved_for_later else " (In Checkout)"

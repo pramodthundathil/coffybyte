@@ -1,0 +1,531 @@
+{% extends 'b2b/index.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .filter-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .stats-card h3 {
+        color: white;
+        margin-bottom: 5px;
+    }
+    .table-hover tbody tr:hover {
+        background-color: #f1f3f5;
+        cursor: pointer;
+    }
+    .badge-paid {
+        background-color: #28a745;
+    }
+    .badge-pending {
+        background-color: #ffc107;
+        color: #000;
+    }
+    .badge-completed {
+        background-color: #17a2b8;
+    }
+    .badge-processing {
+        background-color: #007bff;
+    }
+    .badge-cancelled {
+        background-color: #dc3545;
+    }
+    .badge-partial {
+        background-color: #fd7e14;
+    }
+    .order-details-modal .modal-body {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    .export-btn {
+        border-radius: 20px;
+    }
+</style>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="las la-chart-line"></i> B2B Sales Report
+                </h4>
+                <div>
+                    <!-- <button class="btn btn-success export-btn" onclick="exportToExcel()">
+                        <i class="las la-file-excel"></i> Export Excel
+                    </button> -->
+                    <button class="btn btn-danger export-btn ml-2" onclick="exportToPDF()">
+                        <i class="las la-file-pdf"></i> Export PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row">
+    <div class="col-lg-3 col-md-6">
+        <div class="stats-card">
+            <small>Total Sales</small>
+            <h3 id="totalSales">₹{{ stats.total_sales|floatformat:2 }}</h3>
+            <small>{{ stats.total_orders }} Orders</small>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stats-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+            <small>Today's Sales</small>
+            <h3 id="todaySales">₹{{ stats.today_sales|floatformat:2 }}</h3>
+            <small>{{ stats.today_orders }} Orders</small>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stats-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+            <small>Order Status</small>
+            <h3>{{ stats.completed_orders }}/{{ stats.total_orders }}</h3>
+            <small>{{ stats.pending_orders }} Pending</small>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stats-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+            <small>Payment Status</small>
+            <h3>{{ stats.paid_orders }}/{{ stats.total_orders }}</h3>
+            <small>{{ stats.pending_payment }} Pending Payment</small>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row">
+    <div class="col-12">
+        <div class="filter-card">
+            <form method="GET" id="filterForm">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Date From</label>
+                            <input type="date" class="form-control" name="date_from" 
+                                   value="{{ filters.date_from }}" onchange="applyFilters()">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Date To</label>
+                            <input type="date" class="form-control" name="date_to" 
+                                   value="{{ filters.date_to }}" onchange="applyFilters()">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Order Status</label>
+                            <select class="form-control" name="status" onchange="applyFilters()">
+                                <option value="">All Status</option>
+                                <option value="Pending" {% if filters.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                <option value="Processing" {% if filters.status == 'Processing' %}selected{% endif %}>Processing</option>
+                                <option value="Completed" {% if filters.status == 'Completed' %}selected{% endif %}>Completed</option>
+                                <option value="Cancelled" {% if filters.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Payment Status</label>
+                            <select class="form-control" name="payment_status" onchange="applyFilters()">
+                                <option value="">All Payments</option>
+                                <option value="Paid" {% if filters.payment_status == 'Paid' %}selected{% endif %}>Paid</option>
+                                <option value="Pending" {% if filters.payment_status == 'Pending' %}selected{% endif %}>Pending</option>
+                                <option value="Partial" {% if filters.payment_status == 'Partial' %}selected{% endif %}>Partial</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Payment Method</label>
+                            <select class="form-control" name="payment_method" onchange="applyFilters()">
+                                <option value="">All Methods</option>
+                                <option value="Cash" {% if filters.payment_method == 'Cash' %}selected{% endif %}>Cash</option>
+                                <option value="Card" {% if filters.payment_method == 'Card' %}selected{% endif %}>Card</option>
+                                <option value="UPI" {% if filters.payment_method == 'UPI' %}selected{% endif %}>UPI</option>
+                                <option value="Bank Transfer" {% if filters.payment_method == 'Bank Transfer' %}selected{% endif %}>Bank Transfer</option>
+                                <option value="Tabby" {% if filters.payment_method == 'Tabby' %}selected{% endif %}>Tabby</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Completion</label>
+                            <select class="form-control" name="completion" onchange="applyFilters()">
+                                <option value="">All Orders</option>
+                                <option value="completed" {% if filters.completion == 'completed' %}selected{% endif %}>Completed Only</option>
+                                <option value="pending" {% if filters.completion == 'pending' %}selected{% endif %}>Pending Only</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-group">
+                            <label>Search</label>
+                            <input type="text" class="form-control" name="search" 
+                                   placeholder="Token/Customer" value="{{ filters.search }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="las la-filter"></i> Apply Filters
+                        </button>
+                        <button type="button" class="btn btn-secondary ml-2" onclick="clearFilters()">
+                            <i class="las la-redo"></i> Clear All
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Sales Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Sales Transactions</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="salesTable">
+                        <thead class="bg-light">
+                            <tr>
+                                <th>
+                                    <a href="?{{ query_string }}&sort=token&order={% if sort_by == 'token' and order == 'asc' %}desc{% else %}asc{% endif %}" 
+                                       class="text-dark">
+                                        Token 
+                                        {% if sort_by == 'token' %}
+                                            <i class="las la-sort-{% if order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="?{{ query_string }}&sort=create_date&order={% if sort_by == 'create_date' and order == 'asc' %}desc{% else %}asc{% endif %}" 
+                                       class="text-dark">
+                                        Date & Time
+                                        {% if sort_by == 'create_date' %}
+                                            <i class="las la-sort-{% if order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th>Customer</th>
+                                <th>Items</th>
+                                <th>Payment</th>
+                                <th>
+                                    <a href="?{{ query_string }}&sort=total_price&order={% if sort_by == 'total_price' and order == 'asc' %}desc{% else %}asc{% endif %}" 
+                                       class="text-dark">
+                                        Amount
+                                        {% if sort_by == 'total_price' %}
+                                            <i class="las la-sort-{% if order == 'asc' %}up{% else %}down{% endif %}"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th>Tax</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                            <tr onclick="viewOrderDetails({{ order.id }})">
+                                <td><strong>#{{ order.token }}</strong></td>
+                                <td>
+                                    <div>{{ order.create_date|date:"d M, Y" }}</div>
+                                    <small class="text-muted">{{ order.create_date|time:"h:i A" }}</small>
+                                </td>
+                                <td>
+                                    {% if order.checkout.customer_name %}
+                                        <div>{{ order.checkout.customer_name }}</div>
+                                        {% if order.checkout.customer_phone %}
+                                            <small class="text-muted">{{ order.checkout.customer_phone }}</small>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">Walk-in</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge badge-info">{{ order.items.count }} items</span>
+                                </td>
+                                <td>
+                                    <span class="badge badge-secondary">{{ order.payment_method|default:"N/A" }}</span>
+                                </td>
+                                <td>
+                                    <strong class="text-primary">₹{{ order.total_price|floatformat:2 }}</strong>
+                                </td>
+                                <td>
+                                    <small class="text-success">₹{{ order.total_tax|floatformat:2 }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge badge-{{ order.status|lower }}">{{ order.status }}</span>
+                                    <br>
+                                    {% if order.payment_status %}
+                                        <small class="badge badge-{{ order.payment_status|lower }} mt-1">{{ order.payment_status }}</small>
+                                    {% else %}
+                                        <small class="badge badge-secondary mt-1">No Payment</small>
+                                    {% endif %}
+                                    <br>
+                                    {% if order.completion_status %}
+                                        <small class="badge badge-success mt-1">✓ Done</small>
+                                    {% else %}
+                                        <small class="badge badge-warning mt-1">⏳ In Progress</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" onclick="event.stopPropagation(); viewOrderDetails({{ order.id }})">
+                                        <i class="las la-eye"></i>
+                                    </button>
+                                    <a class="btn btn-sm btn-success" href="{% url 'b2b_invoice' order.id %}" target="_blank">
+                                        <i class="las la-print"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="9" class="text-center py-5">
+                                    <i class="las la-inbox" style="font-size: 48px; color: #ccc;"></i>
+                                    <p class="text-muted">No B2B sales found</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Pagination -->
+            {% if orders.has_other_pages %}
+            <div class="card-footer">
+                <nav>
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if orders.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{{ query_string }}&page=1">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?{{ query_string }}&page={{ orders.previous_page_number }}">Previous</a>
+                        </li>
+                        {% endif %}
+                        
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Page {{ orders.number }} of {{ orders.paginator.num_pages }}
+                            </span>
+                        </li>
+                        
+                        {% if orders.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{{ query_string }}&page={{ orders.next_page_number }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?{{ query_string }}&page={{ orders.paginator.num_pages }}">Last</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Order Details Modal -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Order Details</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body order-details-modal">
+                <div id="orderDetailsContent">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <!-- <button type="button" class="btn btn-success" onclick="printCurrentOrder()">
+                    <i class="las la-print"></i> Print Invoice
+                </button> -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentOrderId = null;
+
+function applyFilters() {
+    document.getElementById('filterForm').submit();
+}
+
+function clearFilters() {
+    window.location.href = '{% url "b2b_sales_list" %}';
+}
+
+function viewOrderDetails(orderId) {
+    currentOrderId = orderId;
+    $('#orderDetailsModal').modal('show');
+    
+    // Use Django's URL template tag (you'll need to modify the template slightly)
+    fetch(`{% url "get_b2b_order_details" 0 %}`.replace('0', orderId))
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            renderOrderDetails(data.order);
+        } else {
+            document.getElementById('orderDetailsContent').innerHTML = `
+                <div class="alert alert-danger">Failed to load order details</div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('orderDetailsContent').innerHTML = `
+            <div class="alert alert-danger">Error loading order details</div>
+        `;
+    });
+}
+
+
+function renderOrderDetails(order) {
+    let itemsHtml = '';
+    let subtotal = 0;
+    
+    order.items.forEach(item => {
+        itemsHtml += `
+            <tr>
+                <td>${item.name}</td>
+                <td class="text-center">${item.quantity}</td>
+                <td class="text-right">₹${item.price.toFixed(2)}</td>
+                <td class="text-right">₹${item.total.toFixed(2)}</td>
+            </tr>
+        `;
+        if (item.special_instructions) {
+            itemsHtml += `
+                <tr>
+                    <td colspan="4" class="pl-4">
+                        <small class="text-muted">Note: ${item.special_instructions}</small>
+                    </td>
+                </tr>
+            `;
+        }
+        if (item.addons && item.addons.length > 0) {
+            item.addons.forEach(addon => {
+                itemsHtml += `
+                    <tr>
+                        <td class="pl-4"><small>+ ${addon.name}</small></td>
+                        <td class="text-center">${item.quantity}</td>
+                        <td class="text-right"><small>₹${addon.price.toFixed(2)}</small></td>
+                        <td class="text-right"><small>₹${(addon.price * item.quantity).toFixed(2)}</small></td>
+                    </tr>
+                `;
+            });
+        }
+        subtotal += item.total;
+    });
+    
+    const html = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Order Information</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <th>Token:</th>
+                        <td>#${order.token}</td>
+                    </tr>
+                    <tr>
+                        <th>Status:</th>
+                        <td><span class="badge badge-${order.status.toLowerCase()}">${order.status}</span></td>
+                    </tr>
+                    <tr>
+                        <th>Order Method:</th>
+                        <td>${order.order_method}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6>Payment Information</h6>
+                <table class="table table-sm">
+                    <tr>
+                        <th>Subtotal:</th>
+                        <td class="text-right">₹${order.total_before_tax.toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                        <th>Tax:</th>
+                        <td class="text-right">₹${order.total_tax.toFixed(2)}</td>
+                    </tr>
+                    <tr>
+                        <th>Total:</th>
+                        <td class="text-right"><strong>₹${order.total_price.toFixed(2)}</strong></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <hr>
+        
+        <h6>Order Items</h6>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead class="bg-light">
+                    <tr>
+                        <th>Item</th>
+                        <th class="text-center">Qty</th>
+                        <th class="text-right">Price</th>
+                        <th class="text-right">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${itemsHtml}
+                </tbody>
+            </table>
+        </div>
+    `;
+    
+    document.getElementById('orderDetailsContent').innerHTML = html;
+}
+
+function printCurrentOrder() {
+    if (currentOrderId) {
+        printInvoice(currentOrderId);
+    }
+}
+
+function printInvoice(orderId) {
+    window.open('', '_blank');
+}
+
+function exportToExcel() {
+    const params = new URLSearchParams(window.location.search);
+    params.set('export', 'excel');
+    window.location.href = `{% url "b2b_sales_list" %}?${params.toString()}`;
+}
+
+function exportToPDF() {
+    const params = new URLSearchParams(window.location.search);
+    params.set('export', 'pdf');
+    window.open(`{% url "b2b_sales_list" %}?${params.toString()}`, '_blank');
+}
+</script>
+{% endblock %}

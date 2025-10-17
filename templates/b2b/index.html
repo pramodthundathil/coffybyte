@@ -1,0 +1,1358 @@
+<!doctype html>
+{% load static %}
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>CoffyByte</title>
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="{%static 'assets/images/logo.png' %}" />
+    <link rel="stylesheet" href="{%static 'assets/css/backend-plugin.min.css' %}">
+    <link rel="stylesheet" href="{%static 'assets/css/backend.css?v=1.0.0' %}">
+    <link rel="stylesheet" href="{%static 'assets/vendor/@fortawesome/fontawesome-free/css/all.min.css' %}">
+    <link rel="stylesheet" href="{%static 'assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css' %}">
+    <link rel="stylesheet" href="{%static 'assets/vendor/remixicon/fonts/remixicon.css' %}">
+</head>
+
+<body class="  ">
+    <!-- loader Start -->
+    <div id="loading">
+        <div id="loading-center">
+        </div>
+    </div>
+    <!-- loader END -->
+    <!-- Wrapper Start -->
+    <div class="wrapper">
+
+        <div class="iq-sidebar  sidebar-default ">
+            <div class="iq-sidebar-logo d-flex align-items-center justify-content-between">
+                <a href="{%url 'dashboard' %}" class="header-logo">
+                    <img src="{%static 'assets/images/logo.png' %}" class="img-fluid rounded-normal light-logo"
+                        alt="logo">
+                    <h5 class="logo-title light-logo ml-3">CoffyByte</h5>
+                </a>
+                <div class="iq-menu-bt-sidebar ml-0">
+                    <i class="las la-bars wrapper-menu"></i>
+                </div>
+            </div>
+            <div class="data-scrollbar" data-scroll="1">
+                <nav class="iq-sidebar-menu">
+                    <ul id="iq-sidebar-toggle" class="iq-menu">
+
+
+                        <li class="active">
+                            <a href="{%url 'dashboard' %}" class="svg-icon">
+                                <svg class="svg-icon" id="p-dash1" width="20" height="20"
+                                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path
+                                        d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                                    </path>
+                                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                                </svg>
+                                <span class="ml-4">Dashboards</span>
+                            </a>
+                        </li>
+
+
+
+
+
+                        <li class=" ">
+                            <a href="#product" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                                <svg class="svg-icon" id="p-dash2" width="20" height="20"
+                                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <circle cx="9" cy="21" r="1"></circle>
+                                    <circle cx="20" cy="21" r="1"></circle>
+                                    <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                                </svg>
+                                <span class="ml-4">Recent Orders</span>
+                                <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20"
+                                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <polyline points="10 15 15 20 20 15"></polyline>
+                                    <path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
+                                </svg>
+                            </a>
+                            <ul id="product" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                                <li class="">
+                                    <a href="{% url 'b2b_pos' %}">
+                                                <i class="las la-cash-register"></i><span>B2B POS</span>
+                                            </a>
+                                </li>
+                                <li class="">
+                                   <li class="">
+                                            <a href="{% url 'b2b_sales_list' %}">
+                                                <i class="las la-chart-line"></i><span>Sales Report</span>
+                                            </a>
+                                        </li>
+                                </li>
+                                
+                            </ul>
+                        </li>
+
+
+                        <!-- <li class=" ">
+                          <a href="#return" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                              <svg class="svg-icon" id="p-dash6" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                  <polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line>
+                              </svg>
+                              <span class="ml-4">Returns</span>
+                              <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                  <polyline points="10 15 15 20 20 15"></polyline><path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
+                              </svg>
+                          </a>
+                          <ul id="return" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                                  <li class="">
+                                          <a href="../backend/page-list-returns.html">
+                                              <i class="las la-minus"></i><span>List Returns</span>
+                                          </a>
+                                  </li>
+                                  <li class="">
+                                          <a href="../backend/page-add-return.html">
+                                              <i class="las la-minus"></i><span>Add Return</span>
+                                          </a>
+                                  </li>
+                          </ul>
+                      </li> -->
+
+                        <!-- <li class=" ">
+                        <a href="#finance" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                            <svg class="svg-icon" id="p-dash3" width="20" height="20"
+                                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            <span class="ml-4">Finance</span>
+                            <svg class="svg-icon iq-arrow-right arrow-active" width="20" height="20"
+                                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <polyline points="10 15 15 20 20 15"></polyline>
+                                <path d="M4 4h7a4 4 0 0 1 4 4v12"></path>
+                            </svg>
+                        </a>
+                      <ul id="finance" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                        <li class="">
+                            <a href="{%url 'income' %}">
+                                <i class="las la-minus"></i><span>Income</span>
+                            </a>
+                        </li>
+                        <li class="">
+                            <a href="{%url 'expence' %}">
+                                <i class="las la-minus"></i><span>Expense</span>
+                            </a>
+                        </li>
+                        <li class="">
+                            <a href="{%url 'balance_sheet' %}">
+                                <i class="las la-minus"></i><span>Income and Expense Chart</span>
+                            </a>
+                        </li>
+                    </ul> -->
+                        <!-- <li class="">
+                            <a href="{% url 'reports_dashboard'%}" class="">
+                                <svg class="svg-icon" id="p-dash7" width="20" height="20"
+                                    xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                </svg>
+                                <span class="ml-4">Reports</span>
+                            </a>
+                            <ul id="reports" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                            </ul>
+                        </li> -->
+
+
+                    </ul>
+                </nav>
+
+                <div class="p-3"></div>
+            </div>
+        </div>
+        <div class="iq-top-navbar">
+            <div class="iq-navbar-custom">
+                <nav class="navbar navbar-expand-lg navbar-light p-0">
+                    <div class="iq-navbar-logo d-flex align-items-center justify-content-between">
+                        <i class="ri-menu-line wrapper-menu"></i>
+                        <a href="{%url 'dashboard'%}" class="header-logo">
+                            <img src="{%static 'assets/images/logo.png' %}" class="img-fluid rounded-normal" alt="logo">
+                            <h5 class="logo-title ml-3">CoffyByte</h5>
+
+                        </a>
+                    </div>
+                    <div class="iq-search-bar device-search">
+                        <form action="#" class="searchbox">
+                            <a class="search-link" href="#"><i class="ri-search-line"></i></a>
+                            <input type="text" class="text search-input" placeholder="Search here...">
+                        </form>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <button class="navbar-toggler" type="button" data-toggle="collapse"
+                            data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                            aria-label="Toggle navigation">
+                            <i class="ri-menu-3-line"></i>
+                        </button>
+                        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                            <ul class="navbar-nav ml-auto navbar-list align-items-center">
+                                <li>
+                                    <a href="{%url 'b2b_pos' %}"
+                                        class="btn border add-btn shadow-none mx-2 d-none d-md-block"><i
+                                            class="las la-plus mr-2"></i>B2B POS</a>
+                                </li>
+                              
+                                <!-- <li class="nav-item nav-icon search-content">
+                                  <a href="#" class="search-toggle rounded" id="dropdownSearch" data-toggle="dropdown"
+                                      aria-haspopup="true" aria-expanded="false">
+                                      <i class="ri-search-line"></i>
+                                  </a>
+                                  <div class="iq-search-bar iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownSearch">
+                                      <form action="#" class="searchbox p-2">
+                                          <div class="form-group mb-0 position-relative">
+                                              <input type="text" class="text search-input font-size-12"
+                                                  placeholder="type here to search...">
+                                              <a href="#" class="search-link"><i class="las la-search"></i></a>
+                                          </div>
+                                      </form>
+                                  </div>
+                              </li> -->
+                                <!-- <li class="nav-item nav-icon dropdown">
+                                  <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton2"
+                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                          stroke-linejoin="round" class="feather feather-mail">
+                                          <path
+                                              d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
+                                          </path>
+                                          <polyline points="22,6 12,13 2,6"></polyline>
+                                      </svg>
+                                      <span class="bg-primary"></span>
+                                  </a>
+                                  <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton2">
+                                      <div class="card shadow-none m-0">
+                                          <div class="card-body p-0 ">
+                                              <div class="cust-title p-3">
+                                                  <div class="d-flex align-items-center justify-content-between">
+                                                      <h5 class="mb-0">All Messages</h5>
+                                                      <a class="badge badge-primary badge-card" href="#">3</a>
+                                                  </div>
+                                              </div>
+                                              <div class="px-3 pt-0 pb-0 sub-card">
+                                                  <a href="#" class="iq-sub-card">
+                                                      <div class="media align-items-center cust-card py-3 border-bottom">
+                                                          <div class="">
+                                                              <img class="avatar-50 rounded-small"
+                                                                  src="{%static 'assets/images/user/01.jpg' %}" alt="01">
+                                                          </div>
+                                                          <div class="media-body ml-3">
+                                                              <div class="d-flex align-items-center justify-content-between">
+                                                                  <h6 class="mb-0">Emma Watson</h6>
+                                                                  <small class="text-dark"><b>12 : 47 pm</b></small>
+                                                              </div>
+                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
+                                                          </div>
+                                                      </div>
+                                                  </a>
+                                                  <a href="#" class="iq-sub-card">
+                                                      <div class="media align-items-center cust-card py-3 border-bottom">
+                                                          <div class="">
+                                                              <img class="avatar-50 rounded-small"
+                                                                  src="../assets/images/user/02.jpg" alt="02">
+                                                          </div>
+                                                          <div class="media-body ml-3">
+                                                              <div class="d-flex align-items-center justify-content-between">
+                                                                  <h6 class="mb-0">Ashlynn Franci</h6>
+                                                                  <small class="text-dark"><b>11 : 30 pm</b></small>
+                                                              </div>
+                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
+                                                          </div>
+                                                      </div>
+                                                  </a>
+                                                  <a href="#" class="iq-sub-card">
+                                                      <div class="media align-items-center cust-card py-3">
+                                                          <div class="">
+                                                              <img class="avatar-50 rounded-small"
+                                                                  src="../assets/images/user/03.jpg" alt="03">
+                                                          </div>
+                                                          <div class="media-body ml-3">
+                                                              <div class="d-flex align-items-center justify-content-between">
+                                                                  <h6 class="mb-0">Kianna Carder</h6>
+                                                                  <small class="text-dark"><b>11 : 21 pm</b></small>
+                                                              </div>
+                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
+                                                          </div>
+                                                      </div>
+                                                  </a>
+                                              </div>
+                                              <a class="right-ic btn btn-primary btn-block position-relative p-2" href="#"
+                                                  role="button">
+                                                  View All
+                                              </a>
+                                          </div>
+                                      </div>
+                                  </div>
+                              </li>
+                              <li class="nav-item nav-icon dropdown">
+                                  <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton"
+                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                          stroke-linejoin="round" class="feather feather-bell">
+                                          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                          <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                                      </svg>
+                                      <span class="bg-primary "></span>
+                                  </a>
+                                  <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                      <div class="card shadow-none m-0">
+                                          <div class="card-body p-0 ">
+                                              <div class="cust-title p-3">
+                                                  <div class="d-flex align-items-center justify-content-between">
+                                                      <h5 class="mb-0">Notifications</h5>
+                                                      <a class="badge badge-primary badge-card" href="#">3</a>
+                                                  </div>
+                                              </div>
+                                              <div class="px-3 pt-0 pb-0 sub-card">
+                                                  <a href="#" class="iq-sub-card">
+                                                      <div class="media align-items-center cust-card py-3 border-bottom">
+                                                          <div class="">
+                                                              <img class="avatar-50 rounded-small"
+                                                                  src="../assets/images/user/01.jpg" alt="01">
+                                                          </div>
+                                                          <div class="media-body ml-3">
+                                                              <div class="d-flex align-items-center justify-content-between">
+                                                                  <h6 class="mb-0">Emma Watson</h6>
+                                                                  <small class="text-dark"><b>12 : 47 pm</b></small>
+                                                              </div>
+                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
+                                                          </div>
+                                                      </div>
+                                                  </a>
+                                                  <a href="#" class="iq-sub-card">
+                                                      <div class="media align-items-center cust-card py-3 border-bottom">
+                                                          <div class="">
+                                                              <img class="avatar-50 rounded-small"
+                                                                  src="../assets/images/user/02.jpg" alt="02">
+                                                          </div>
+                                                          <div class="media-body ml-3">
+                                                              <div class="d-flex align-items-center justify-content-between">
+                                                                  <h6 class="mb-0">Ashlynn Franci</h6>
+                                                                  <small class="text-dark"><b>11 : 30 pm</b></small>
+                                                              </div>
+                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
+                                                          </div>
+                                                      </div>
+                                                  </a>
+                                                  <a href="#" class="iq-sub-card">
+                                                      <div class="media align-items-center cust-card py-3">
+                                                          <div class="">
+                                                              <img class="avatar-50 rounded-small"
+                                                                  src="../assets/images/user/03.jpg" alt="03">
+                                                          </div>
+                                                          <div class="media-body ml-3">
+                                                              <div class="d-flex align-items-center justify-content-between">
+                                                                  <h6 class="mb-0">Kianna Carder</h6>
+                                                                  <small class="text-dark"><b>11 : 21 pm</b></small>
+                                                              </div>
+                                                              <small class="mb-0">Lorem ipsum dolor sit amet</small>
+                                                          </div>
+                                                      </div>
+                                                  </a>
+                                              </div>
+                                              <a class="right-ic btn btn-primary btn-block position-relative p-2" href="#"
+                                                  role="button">
+                                                  View All
+                                              </a>
+                                          </div>
+                                      </div>
+                                  </div>
+                              </li> -->
+                                <li class="nav-item nav-icon dropdown caption-content">
+                                    <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
+                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <img src="{%static 'assets/images/user/1.png' %}" class="img-fluid rounded"
+                                            alt="user">
+                                    </a>
+                                    <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                        <div class="card shadow-none m-0">
+                                            <div class="card-body p-0 text-center">
+                                                <div class="media-body profile-detail text-center">
+                                                    <img src="{%static 'assets/images/page-img/profile-bg.jpg' %}"
+                                                        alt="profile-bg" class="rounded-top img-fluid mb-4">
+                                                    <img src="{%static 'assets/images/user/1.png' %}" alt="profile-img"
+                                                        class="rounded profile-img img-fluid avatar-70">
+                                                </div>
+                                                <div class="p-3">
+                                                    <h5 class="mb-1">{{request.user}}</h5>
+                                                    <p class="mb-0">Since {{request.user.date_joined}}</p>
+                                                    <div class="d-flex align-items-center justify-content-center mt-3">
+                                                        <a href="" class="btn border mr-2">Profile</a>
+                                                        <a href="{%url 'SignOut' %}" class="btn border">Sign Out</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+
+
+        <div class="content-page">
+            <div class="container-fluid">
+
+
+                {% block content %}
+                <style>
+                    .menu-item-card {
+                        cursor: pointer;
+                        transition: all 0.3s;
+                        border: 2px solid transparent;
+                    }
+
+                    .menu-item-card:hover {
+                        transform: translateY(-5px);
+                        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+                        border-color: #007bff;
+                    }
+
+                    .menu-item-card img {
+                        height: 120px;
+                        object-fit: cover;
+                    }
+
+                    .category-btn {
+                        margin: 5px;
+                        border-radius: 20px;
+                    }
+
+                    .category-btn.active {
+                        background-color: #007bff;
+                        color: white;
+                    }
+
+                    .order-item {
+                        border-bottom: 1px solid #dee2e6;
+                        padding: 10px 0;
+                    }
+
+                    .order-item:last-child {
+                        border-bottom: none;
+                    }
+
+                    .price-input {
+                        width: 120px;
+                        font-weight: bold;
+                        color: #007bff;
+                    }
+
+                    .qty-input {
+                        width: 70px;
+                        text-align: center;
+                    }
+
+                    .order-summary {
+                        position: sticky;
+                        top: 20px;
+                    }
+
+                    .search-box {
+                        border-radius: 25px;
+                    }
+
+                    .badge-custom {
+                        font-size: 0.9rem;
+                        padding: 5px 10px;
+                    }
+                </style>
+
+                <div class="row">
+                    <!-- Left Panel - Menu Items -->
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h4 class="mb-0">B2B Menu</h4>
+                                <div class="d-flex align-items-center">
+                                    <input type="text" id="searchMenu" class="form-control search-box"
+                                        placeholder="Search by name, code, barcode..." style="width: 300px;">
+                                    <button class="btn btn-primary ml-2" onclick="createNewOrder()">
+                                        <i class="las la-plus"></i> New Order
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <!-- Categories -->
+                                <div class="mb-3" id="categoryFilter">
+                                    <button class="btn btn-outline-primary category-btn active" data-category="all">
+                                        All Items
+                                    </button>
+                                    {% for category in categories %}
+                                    <button class="btn btn-outline-primary category-btn"
+                                        data-category="{{ category.id }}">
+                                        {{ category.name }}
+                                    </button>
+                                    {% endfor %}
+                                </div>
+
+                                <!-- Menu Items Grid -->
+                                <div class="row" id="menuGrid">
+                                    {% for item in menu_items %}
+                                    <div class="col-md-4 col-lg-3 mb-3 menu-item"
+                                        data-category="{{ item.category.id }}">
+                                        <div class="card menu-item-card"
+                                            onclick="selectMenuItem({{ item.id }}, '{{ item.name }}', {{ item.price }})">
+                                            <div class="card-body text-center p-2">
+                                                {% if item.image %}
+                                                <img src="{{ item.image.url }}" class="img-fluid mb-2"
+                                                    alt="{{ item.name }}">
+                                                {% else %}
+                                                <div class="bg-light mb-2"
+                                                    style="height: 120px; display: flex; align-items: center; justify-content: center;">
+                                                    <i class="las la-utensils"
+                                                        style="font-size: 48px; color: #ccc;"></i>
+                                                </div>
+                                                {% endif %}
+                                                <h6 class="mb-1">{{ item.name }}</h6>
+                                                <small class="text-muted">{{ item.category.name }}</small>
+                                                <div class="mt-2">
+                                                    <span class="badge badge-info">{{ item.portion }}</span>
+                                                    <span class="badge badge-success">{{ item.diet }}</span>
+                                                </div>
+                                                <p class="text-primary font-weight-bold mt-2 mb-0">
+                                                    Base: ₹{{ item.price }}
+                                                </p>
+                                                {% if item.code %}
+                                                <small class="text-muted">Code: {{ item.code }}</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Panel - Order Details -->
+                    <div class="col-lg-4">
+                        <div class="order-summary">
+                            <div class="card">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">Current Order</h5>
+                                    <small id="orderInfo">No active order</small>
+                                </div>
+                                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                                    <div id="orderItems">
+                                        <div class="text-center text-muted py-5">
+                                            <i class="las la-shopping-cart" style="font-size: 48px;"></i>
+                                            <p>No items added yet</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <strong>Subtotal:</strong>
+                                        <span id="subtotalAmount">₹0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <strong>Tax:</strong>
+                                        <span id="taxAmount">₹0.00</span>
+                                    </div>
+                                    <hr>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <h5 class="mb-0">Total:</h5>
+                                        <h5 class="mb-0 text-primary" id="totalAmount">₹0.00</h5>
+                                    </div>
+                                    <button class="btn btn-success btn-block btn-lg" onclick="proceedToCheckout()"
+                                        id="checkoutBtn" disabled>
+                                        <i class="las la-check-circle"></i> Checkout
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Active Orders -->
+                            <div class="card mt-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Active B2B Orders</h6>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="refreshActiveOrders()">
+                                        <i class="las la-sync"></i> Refresh
+                                    </button>
+                                </div>
+                                <div class="card-body p-2" style="max-height: 200px; overflow-y: auto;"
+                                    id="activeOrdersContainer">
+                                    {% for order in active_orders %}
+                                    <div class="d-flex justify-content-between align-items-center p-2 border-bottom"
+                                        style="cursor: pointer;" onclick="loadOrder({{ order.id }})">
+                                        <div>
+                                            <strong>Token #{{ order.token }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ order.create_date|date:"h:i A" }}</small>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="badge badge-{{ order.status|lower }}">{{ order.status }}</span>
+                                            <br>
+                                            <strong class="text-primary">₹{{ order.total_price }}</strong>
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <p class="text-muted text-center mb-0">No active orders</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Item Modal -->
+                <div class="modal fade" id="addItemModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Add Item to Order</h5>
+                                <button type="button" class="close" data-dismiss="modal">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <input type="hidden" id="selectedMenuId">
+                                <div class="form-group">
+                                    <label>Item Name</label>
+                                    <input type="text" class="form-control" id="itemName" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label>Base Price (Reference)</label>
+                                    <input type="number" class="form-control" id="basePrice" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label>Custom B2B Price <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="customPrice"
+                                        placeholder="Enter selling price" step="0.01" min="0" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Quantity</label>
+                                    <input type="number" class="form-control" id="itemQuantity" value="1" min="1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Special Instructions</label>
+                                    <textarea class="form-control" id="specialInstructions" rows="2"></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-primary" onclick="addItemToOrder()">Add to
+                                    Order</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Checkout Modal -->
+                <div class="modal fade" id="checkoutModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-success text-white">
+                                <h5 class="modal-title">Complete Checkout</h5>
+                                <button type="button" class="close text-white" data-dismiss="modal">
+                                    <span>&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Customer Name</label>
+                                            <input type="text" class="form-control" id="customerName"
+                                                placeholder="Enter customer name">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Customer Phone</label>
+                                            <input type="text" class="form-control" id="customerPhone"
+                                                placeholder="Enter phone number">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Payment Method <span class="text-danger">*</span></label>
+                                            <select class="form-control" id="paymentMethod">
+                                                <option value="Cash">Cash</option>
+                                                <option value="Card">Card</option>
+                                                <option value="UPI">UPI</option>
+                                                <option value="Bank Transfer">Bank Transfer</option>
+                                                <option value="Tabby">Tabby</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label>Discount Amount</label>
+                                            <input type="number" class="form-control" id="discountAmount" value="0"
+                                                step="0.01" min="0">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Discount Reason</label>
+                                            <input type="text" class="form-control" id="discountReason"
+                                                placeholder="Optional">
+                                        </div>
+                                        <div class="mt-4 p-3 bg-light rounded">
+                                            <h6>Order Summary</h6>
+                                            <div class="d-flex justify-content-between">
+                                                <span>Subtotal:</span>
+                                                <strong id="checkoutSubtotal">₹0.00</strong>
+                                            </div>
+                                            <div class="d-flex justify-content-between">
+                                                <span>Tax:</span>
+                                                <strong id="checkoutTax">₹0.00</strong>
+                                            </div>
+                                            <div class="d-flex justify-content-between">
+                                                <span>Discount:</span>
+                                                <strong id="checkoutDiscount" class="text-danger">-₹0.00</strong>
+                                            </div>
+                                            <hr>
+                                            <div class="d-flex justify-content-between">
+                                                <h5>Final Amount:</h5>
+                                                <h5 class="text-success" id="checkoutFinal">₹0.00</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-success btn-lg" onclick="completeCheckout()">
+                                    <i class="las la-check-circle"></i> Complete Payment
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <script>
+                    let currentOrderId = null;
+                    let currentOrderData = null;
+
+                    // Create new order
+                    function createNewOrder() {
+                        fetch('{% url "create_b2b_order" %}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            }
+                        })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                if (data.success) {
+                                    currentOrderId = data.order_id;
+                                    document.getElementById('orderInfo').textContent = `Order #${data.token}`;
+                                    // Load the new order details immediately
+                                    loadOrderDetails(currentOrderId);
+                                    // Refresh active orders list
+                                    refreshActiveOrders();
+                                    showNotification('New order created successfully', 'success');
+                                } else {
+                                    showNotification(data.message, 'error');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                showNotification('Failed to create order', 'error');
+                            });
+                    }
+                    // Refresh active orders list - FIXED URL
+                    function refreshActiveOrders() {
+                        fetch('{% url "get_active_b2b_orders" %}')
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                if (data.success) {
+                                    renderActiveOrders(data.orders);
+                                } else {
+                                    console.error('Failed to load active orders:', data.message);
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error refreshing orders:', error);
+                                showNotification('Failed to refresh orders', 'error');
+                            });
+                    }
+                    // Render active orders in the sidebar
+                    function renderActiveOrders(orders) {
+                        const container = document.querySelector('#activeOrdersContainer');
+                        if (!container) return;
+
+                        if (!orders || orders.length === 0) {
+                            container.innerHTML = '<p class="text-muted text-center mb-0">No active orders</p>';
+                            return;
+                        }
+
+                        let html = '';
+                        orders.forEach(order => {
+                            // Determine badge color based on status
+                            let badgeClass = 'badge-secondary';
+                            if (order.status === 'Completed') badgeClass = 'badge-success';
+                            if (order.status === 'Pending') badgeClass = 'badge-warning';
+                            if (order.status === 'Processing') badgeClass = 'badge-info';
+
+                            html += `
+            <div class="d-flex justify-content-between align-items-center p-2 border-bottom" 
+                 style="cursor: pointer;" onclick="loadOrder(${order.id})">
+                <div>
+                    <strong>Token #${order.token}</strong>
+                    <br>
+                    <small class="text-muted">${order.time}</small>
+                </div>
+                <div class="text-right">
+                    <span class="badge ${badgeClass}">${order.status}</span>
+                    <br>
+                    <strong class="text-primary">₹${order.total_price.toFixed(2)}</strong>
+                </div>
+            </div>
+        `;
+                        });
+
+                        container.innerHTML = html;
+                    }
+
+                    // Select menu item
+                    function selectMenuItem(itemId, itemName, basePrice) {
+                        if (!currentOrderId) {
+                            showNotification('Please create a new order first', 'warning');
+                            return;
+                        }
+
+                        document.getElementById('selectedMenuId').value = itemId;
+                        document.getElementById('itemName').value = itemName;
+                        document.getElementById('basePrice').value = basePrice;
+                        document.getElementById('customPrice').value = basePrice;
+                        document.getElementById('itemQuantity').value = 1;
+                        document.getElementById('specialInstructions').value = '';
+
+                        $('#addItemModal').modal('show');
+                    }
+
+                    // Add item to order
+                    function addItemToOrder() {
+                        const menuItemId = document.getElementById('selectedMenuId').value;
+                        const customPrice = document.getElementById('customPrice').value;
+                        const quantity = document.getElementById('itemQuantity').value;
+                        const instructions = document.getElementById('specialInstructions').value;
+
+                        if (!customPrice || customPrice <= 0) {
+                            showNotification('Please enter a valid price', 'error');
+                            return;
+                        }
+
+                        fetch('{% url "add_b2b_item" %}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            body: JSON.stringify({
+                                order_id: currentOrderId,
+                                menu_item_id: menuItemId,
+                                custom_price: customPrice,
+                                quantity: quantity,
+                                special_instructions: instructions
+                            })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    $('#addItemModal').modal('hide');
+                                    loadOrderDetails(currentOrderId);
+                                    refreshActiveOrders(); // Refresh the orders list
+                                    showNotification('Item added successfully', 'success');
+                                } else {
+                                    showNotification(data.message, 'error');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                showNotification('Failed to add item', 'error');
+                            });
+                    }
+
+                    // Load order details - FIXED URL
+                    function loadOrderDetails(orderId) {
+                        // Use the Django URL template tag to generate the correct URL
+                        const url = `{% url 'get_b2b_order_details' 0 %}`.replace('0', orderId);
+
+                        fetch(url)
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                if (data.success) {
+                                    currentOrderData = data.order;
+                                    renderOrderItems(data.order);
+                                    updateOrderSummary(data.order);
+                                    document.getElementById('orderInfo').textContent = `Order #${data.order.token}`;
+                                } else {
+                                    showNotification(data.message, 'error');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error loading order details:', error);
+                                showNotification('Failed to load order details. Please check the order ID.', 'error');
+                            });
+                    }
+
+                    // Render order items
+                    function renderOrderItems(order) {
+                        const container = document.getElementById('orderItems');
+
+                        if (!order.items || order.items.length === 0) {
+                            container.innerHTML = `
+            <div class="text-center text-muted py-5">
+                <i class="las la-shopping-cart" style="font-size: 48px;"></i>
+                <p>No items added yet</p>
+            </div>
+        `;
+                            document.getElementById('checkoutBtn').disabled = true;
+                            return;
+                        }
+
+                        document.getElementById('checkoutBtn').disabled = false;
+
+                        let html = '';
+                        order.items.forEach(item => {
+                            html += `
+            <div class="order-item">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="flex-grow-1">
+                        <strong>${item.name}</strong>
+                        ${item.special_instructions ? `<br><small class="text-muted">${item.special_instructions}</small>` : ''}
+                    </div>
+                    <button class="btn btn-sm btn-danger" onclick="removeItem(${item.id})">
+                        <i class="las la-times"></i>
+                    </button>
+                </div>
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="updateQuantity(${item.id}, ${item.quantity - 1})">
+                            <i class="las la-minus"></i>
+                        </button>
+                        <input type="number" class="form-control form-control-sm qty-input mx-2" 
+                               value="${item.quantity}" min="1"
+                               onchange="updateQuantity(${item.id}, this.value)">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="updateQuantity(${item.id}, ${item.quantity + 1})">
+                            <i class="las la-plus"></i>
+                        </button>
+                    </div>
+                    <div class="text-right">
+                        <div class="input-group input-group-sm">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">₹</span>
+                            </div>
+                            <input type="number" class="form-control price-input" 
+                                   value="${item.price}" step="0.01" min="0"
+                                   onchange="updatePrice(${item.id}, this.value)">
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between mt-2">
+                    <small class="text-muted">Item Total:</small>
+                    <strong class="text-primary">₹${item.total.toFixed(2)}</strong>
+                </div>
+                ${item.tax_amount > 0 ? `
+                    <div class="d-flex justify-content-between">
+                        <small class="text-muted">Tax:</small>
+                        <small class="text-success">₹${item.tax_amount.toFixed(2)}</small>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+                        });
+
+                        container.innerHTML = html;
+                    }
+
+                    // Update order summary
+                    function updateOrderSummary(order) {
+                        document.getElementById('subtotalAmount').textContent = `₹${order.total_before_tax.toFixed(2)}`;
+                        document.getElementById('taxAmount').textContent = `₹${order.total_tax.toFixed(2)}`;
+                        document.getElementById('totalAmount').textContent = `₹${order.total_price.toFixed(2)}`;
+                    }
+
+                    // Update item quantity
+                    function updateQuantity(itemId, quantity) {
+                        if (quantity < 1) return;
+
+                        fetch('{% url "update_b2b_item" %}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            body: JSON.stringify({
+                                item_id: itemId,
+                                quantity: quantity
+                            })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    loadOrderDetails(currentOrderId);
+                                    refreshActiveOrders(); // Refresh orders list
+                                } else {
+                                    showNotification(data.message, 'error');
+                                }
+                            })
+                            .catch(error => console.error('Error:', error));
+                    }
+
+                    // Update item price
+                    function updatePrice(itemId, price) {
+                        if (price <= 0) {
+                            showNotification('Price must be greater than 0', 'error');
+                            return;
+                        }
+
+                        fetch('{% url "update_b2b_item" %}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            body: JSON.stringify({
+                                item_id: itemId,
+                                custom_price: price
+                            })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    loadOrderDetails(currentOrderId);
+                                    refreshActiveOrders(); // Refresh orders list
+                                    showNotification('Price updated', 'success');
+                                } else {
+                                    showNotification(data.message, 'error');
+                                }
+                            })
+                            .catch(error => console.error('Error:', error));
+                    }
+
+                    // Remove item from order
+                    function removeItem(itemId) {
+                        if (!confirm('Remove this item from order?')) return;
+
+                        fetch('{% url "remove_b2b_item" %}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            body: JSON.stringify({
+                                item_id: itemId
+                            })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    loadOrderDetails(currentOrderId);
+                                    refreshActiveOrders(); // Refresh orders list
+                                    showNotification('Item removed', 'success');
+                                } else {
+                                    showNotification(data.message, 'error');
+                                }
+                            })
+                            .catch(error => console.error('Error:', error));
+                    }
+
+                    // Load existing order
+                    function loadOrder(orderId) {
+                        currentOrderId = orderId;
+                        loadOrderDetails(orderId);
+                        document.getElementById('orderInfo').textContent = `Loading Order #${orderId}...`;
+                    }
+
+                    // Proceed to checkout
+                    function proceedToCheckout() {
+                        if (!currentOrderData || !currentOrderData.items.length) {
+                            showNotification('Add items to order first', 'warning');
+                            return;
+                        }
+
+                        // Update checkout modal with current totals
+                        document.getElementById('checkoutSubtotal').textContent = `₹${currentOrderData.total_before_tax.toFixed(2)}`;
+                        document.getElementById('checkoutTax').textContent = `₹${currentOrderData.total_tax.toFixed(2)}`;
+
+                        const discountAmount = parseFloat(document.getElementById('discountAmount').value) || 0;
+                        const finalAmount = currentOrderData.total_price - discountAmount;
+
+                        document.getElementById('checkoutDiscount').textContent = `-₹${discountAmount.toFixed(2)}`;
+                        document.getElementById('checkoutFinal').textContent = `₹${finalAmount.toFixed(2)}`;
+
+                        $('#checkoutModal').modal('show');
+                    }
+
+                    // Calculate final amount with discount
+                    document.getElementById('discountAmount').addEventListener('input', function () {
+                        const discount = parseFloat(this.value) || 0;
+                        const total = currentOrderData.total_price;
+                        const finalAmount = total - discount;
+
+                        document.getElementById('checkoutDiscount').textContent = `-₹${discount.toFixed(2)}`;
+                        document.getElementById('checkoutFinal').textContent = `₹${finalAmount.toFixed(2)}`;
+                    });
+
+                    // Complete checkout
+                    function completeCheckout() {
+                        const paymentMethod = document.getElementById('paymentMethod').value;
+                        const customerName = document.getElementById('customerName').value;
+                        const customerPhone = document.getElementById('customerPhone').value;
+                        const discountAmount = parseFloat(document.getElementById('discountAmount').value) || 0;
+                        const discountReason = document.getElementById('discountReason').value;
+
+                        if (!paymentMethod) {
+                            showNotification('Please select payment method', 'error');
+                            return;
+                        }
+
+                        fetch('{% url "checkout_b2b_order" %}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            },
+                            body: JSON.stringify({
+                                order_id: currentOrderId,
+                                payment_method: paymentMethod,
+                                customer_name: customerName,
+                                customer_phone: customerPhone,
+                                discount_amount: discountAmount,
+                                discount_reason: discountReason
+                            })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    $('#checkoutModal').modal('hide');
+                                    showNotification(`Order #${data.order_token} completed successfully!`, 'success');
+
+                                    // Reset current order
+                                    currentOrderId = null;
+                                    currentOrderData = null;
+                                    document.getElementById('orderInfo').textContent = 'No active order';
+                                    document.getElementById('orderItems').innerHTML = `
+                <div class="text-center text-muted py-5">
+                    <i class="las la-shopping-cart" style="font-size: 48px;"></i>
+                    <p>No items added yet</p>
+                </div>
+            `;
+                                    updateOrderSummary({ total_before_tax: 0, total_tax: 0, total_price: 0 });
+
+                                    // Refresh active orders
+                                    refreshActiveOrders();
+                                } else {
+                                    showNotification(data.message, 'error');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                showNotification('Failed to complete checkout', 'error');
+                            });
+                    }
+
+                    // Category filter
+                    document.querySelectorAll('.category-btn').forEach(btn => {
+                        btn.addEventListener('click', function () {
+                            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                            this.classList.add('active');
+
+                            const category = this.dataset.category;
+                            document.querySelectorAll('.menu-item').forEach(item => {
+                                if (category === 'all' || item.dataset.category === category) {
+                                    item.style.display = 'block';
+                                } else {
+                                    item.style.display = 'none';
+                                }
+                            });
+                        });
+                    });
+
+                    // Search functionality
+                    let searchTimeout;
+                    document.getElementById('searchMenu').addEventListener('input', function () {
+                        clearTimeout(searchTimeout);
+                        const query = this.value.toLowerCase();
+
+                        if (query.length < 2) {
+                            document.querySelectorAll('.menu-item').forEach(item => {
+                                item.style.display = 'block';
+                            });
+                            return;
+                        }
+
+                        searchTimeout = setTimeout(() => {
+                            fetch(`{% url "search_menu_items" %}?q=${encodeURIComponent(query)}`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        // Hide all items first
+                                        document.querySelectorAll('.menu-item').forEach(item => {
+                                            item.style.display = 'none';
+                                        });
+
+                                        // Show matching items
+                                        data.items.forEach(itemData => {
+                                            const matchingItem = document.querySelector(`.menu-item-card[data-item-id="${itemData.id}"]`);
+                                            if (matchingItem) {
+                                                matchingItem.closest('.menu-item').style.display = 'block';
+                                            }
+                                        });
+                                    }
+                                })
+                                .catch(error => console.error('Error:', error));
+                        }, 300);
+                    });
+
+                    // Notification helper
+                    function showNotification(message, type) {
+                        const colors = {
+                            success: '#28a745',
+                            error: '#dc3545',
+                            warning: '#ffc107',
+                            info: '#17a2b8'
+                        };
+
+                        // Remove existing notifications
+                        document.querySelectorAll('.custom-notification').forEach(notif => notif.remove());
+
+                        const notification = document.createElement('div');
+                        notification.className = 'custom-notification';
+                        notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${colors[type] || colors.info};
+        color: white;
+        padding: 15px 25px;
+        border-radius: 5px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        z-index: 9999;
+        animation: slideIn 0.3s ease-out;
+    `;
+                        notification.textContent = message;
+
+                        document.body.appendChild(notification);
+
+                        setTimeout(() => {
+                            notification.style.animation = 'slideOut 0.3s ease-out';
+                            setTimeout(() => notification.remove(), 300);
+                        }, 3000);
+                    }
+
+                    // Add CSS animations
+                    const style = document.createElement('style');
+                    style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    @keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(400px);
+            opacity: 0;
+        }
+    }
+`;
+                    document.head.appendChild(style);
+
+                    // Initialize - check if there's a token in URL to load specific order
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const orderId = urlParams.get('order_id');
+                        if (orderId) {
+                            loadOrder(orderId);
+                        }
+
+                        // Add data-item-id to menu items for search functionality
+                        document.querySelectorAll('.menu-item-card').forEach(card => {
+                            const itemId = card.getAttribute('onclick').match(/\d+/)[0];
+                            card.setAttribute('data-item-id', itemId);
+                        });
+                    });
+                </script>
+                {% endblock %}
+            </div>
+        </div>
+        <!-- Wrapper End-->
+        <footer class="iq-footer">
+            <div class="container-fluid">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <ul class="list-inline mb-0">
+                                    <li class="list-inline-item"><a href="#">Privacy Policy</a></li>
+                                    <li class="list-inline-item"><a href="#">Terms of Use</a></li>
+                                </ul>
+                            </div>
+                            <div class="col-lg-6 text-right">
+                                <span class="mr-1">
+                                    <script>document.write(new Date().getFullYear())</script>©
+                                </span> <a href="#" class="">CoffyByte</a>.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- Backend Bundle JavaScript -->
+        <script src="{%static 'assets/js/backend-bundle.min.js' %}"></script>
+
+        <!-- Table Treeview JavaScript -->
+        <script src="{%static 'assets/js/table-treeview.js' %}"></script>
+
+        <!-- Chart Custom JavaScript -->
+        <script src="{%static 'assets/js/customizer.js' %}"></script>
+
+        <!-- Chart Custom JavaScript -->
+        <script async src="{%static 'assets/js/chart-custom.js' %}"></script>
+
+        <!-- app JavaScript -->
+        <script src="{%static 'assets/js/app.js' %}"></script>
+
+</body>
+
+</html>

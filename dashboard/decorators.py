@@ -10,13 +10,12 @@ def store_owner_access(view_func):
                 if user.store_memberships.all()[0].role == 'store_owner':
                     return view_func(request, *args, **kwargs)
                 else:
-                    logout(request)
-                    messages.info(request,"You Dont have permission to access this page")
-                    return redirect('SignIn')
+                    
+                    # messages.info(request,"")
+                    return redirect('b2b_pos')
             except:
                 logout(request)
                 messages.info(request,"Something Wrong")
-                
                 return redirect('SignIn')
 
         else:
